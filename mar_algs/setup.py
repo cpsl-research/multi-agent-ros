@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'mar_carla_sim'
+package_name = 'mar_algs'
 
 setup(
     name=package_name,
@@ -20,7 +20,6 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "point_simulator = mar_carla_sim.point_simulator.nodes:main"
         ],
     },
 )

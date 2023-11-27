@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "multi_agent_ros"
+version = "0.1.0-alpha.1"
+description = "Multi-agent ROS experiments"
+authors = ["Spencer Hallyburton <spencer@shally.dev>"]
+readme = "README.md"
+license = "MIT License"
+repository = "https://github.com/cpsl-research/multi-agent-ros.git"
+keywords = ["computer vision", "perception", "tracking", "replay"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+]
+
+[tool.poetry.dependencies]
+python = "~3.10"
+avstack_bridge = {path="./submodules/avstack-rosbridge/avstack_bridge/", develop=true}
+lib-avstack-core = {path="./submodules/avstack-rosbridge/submodules/lib-avstack-core", develop=true}  # is this necessary since its in avstack_bridge?
+lib-avstack-api = {path="./submodules/lib-avstack-api", develop=true}
+opencv-python = "=4.5.5.64"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7"
+pytest-cov = "^4"
+bandit = "^1.7"
+black = "~22.12.0"
+mypy = "^0"
+isort = "^5.11"
+flake8 = "^5.0"
+autoflake = "^1"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q -s"
+testpaths = [
+    "tests",
+    "integration",
+]
+
+[build-system]
+requires = [
+    "poetry-core",
+]
+build-backend = "poetry.core.masonry.api"
