@@ -9,12 +9,17 @@ from .loaders import CarlaDatasetLoader
 
 
 class PointSimulator(Node):
-    def __init__(self):
-        super().__init__("point_simulator")
+    def __init__(self, name):
+        super().__init__(name)
 
         # transform listener
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+
+
+class CarlaPointSimulator(PointSimulator):
+    def __init__(self):
+        super().__init__("point_simulator")
 
         # parameters
         self.declare_parameter("real_time_framerate", 10)
@@ -29,15 +34,24 @@ class PointSimulator(Node):
             tf_buffer=self.tf_buffer
         )
 
+        # send spawn messages for agents
+        # TODO
+
         # set ros actions
-        self.publisher_ = self.create_publisher(ObjectStateArray, "object_truth", 10)
+        self.publisher_object_gt = self.create_publisher(ObjectStateArray, "object_truth", 10)
+        self.publisher_agent_gt  = self.create_publisher(ObjectStateArray, "agent_truth", )
+
         timer_period = 1.0 / rt_framerate
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
         obj_state_array, i_frame = self.loader.load_next()
+
+        # publish object ground truth states
         self.publisher_.publish(obj_state_array)
         self.get_logger().info(f"Publishing {len(obj_state_array.states)} objects at frame {i_frame}")
+
+        # publish agent ground truth states
 
 
 def main(args=None):

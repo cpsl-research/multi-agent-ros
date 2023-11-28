@@ -1,0 +1,5 @@
+geometry_msgs/Pose
+string config  # name of the config file (?)
+string name # Optional.  A unique name will be created and returned if this is empty
+---
+string name
