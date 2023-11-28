@@ -1,0 +1,5 @@
+/simulator:
+  ros__parameters:
+    real_time_framerate: 10
+    dataset_path: "/data/shared/CARLA/object-v1"
+    scene_idx: 0

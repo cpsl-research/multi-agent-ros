@@ -7,20 +7,20 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
 
-    sim_config = os.path.join(
+    viz_config = os.path.join(
         get_package_share_directory("mar_bringup"),
         "config",
-        "simulator",
-        "carla_point_simulator.yml",
+        "visualizer",
+        "visualizer.yml",
     )
 
     return LaunchDescription(
         [
             Node(
-                package="mar_carla_sim",
-                executable="point_simulator",
-                name="simulator",
-                parameters=[sim_config],
+                package="mar_viz",
+                executable="visualizer",
+                name="visualizer",
+                parameters=[viz_config],
                 arguments=['--ros-args', '--log-level', 'INFO'],
             )
         ]
