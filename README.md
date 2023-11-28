@@ -12,7 +12,7 @@ This project uses submodules instead of system installations because it is under
 1. `cd` back to the project workspace (where you can see the `src` folder)
 1. Build the project with `python -m colcon build --symlink-install`
 1. Source the project with `source install/setup.bash` or `source install/setup.zsh`
-1. Run your launch file, e.g., `ros2 launch <launch file here>`
+1. Run your launch file, e.g., `ros2 launch mar_bringup <launch file here>`, for example: `ros2 launch mar_bringup vehiclesec.launch.py`
 
 ### Option 2: Using conda + poetry
 
