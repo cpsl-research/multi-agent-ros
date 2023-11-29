@@ -2,10 +2,17 @@ import rclpy
 from rclpy.node import Node
 
 from avstack_msgs.msg import ObjectStateArray
+
+from mar_msgs.srv import SpawnAgent
+
 from tf2_ros import TransformException, TransformListener
 from tf2_ros.buffer import Buffer
 
 from .loaders import CarlaDatasetLoader
+
+
+def spawn_agent(pipeline: str, name: str) -> Node:
+    pass
 
 
 class PointSimulator(Node):
@@ -15,6 +22,18 @@ class PointSimulator(Node):
         # transform listener
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+
+        # spawn agent service
+        self.srv = self.create_service(SpawnAgent, "spawn_agent", self.spawn_agent_callback)
+        self.agents = {}
+
+    def spawn_agent_callback(self, request, response):
+        name = request.name if request.name else "agent_{}".format(len(self.agents))
+        if name in self.agents:
+            self.get_logger().warning(f"Cannot spawn agent because name {name} already exists")
+        self.agents[name] = spawn_agent(request.pipeline, name)
+        response.name = name
+        return response
 
 
 class CarlaPointSimulator(PointSimulator):
@@ -39,7 +58,7 @@ class CarlaPointSimulator(PointSimulator):
 
         # set ros actions
         self.publisher_object_gt = self.create_publisher(ObjectStateArray, "object_truth", 10)
-        self.publisher_agent_gt  = self.create_publisher(ObjectStateArray, "agent_truth", )
+        # self.publisher_agent_gt  = self.create_publisher(ObjectStateArray, "agent_truth", )
 
         timer_period = 1.0 / rt_framerate
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -48,7 +67,7 @@ class CarlaPointSimulator(PointSimulator):
         obj_state_array, i_frame = self.loader.load_next()
 
         # publish object ground truth states
-        self.publisher_.publish(obj_state_array)
+        self.publisher_object_gt.publish(obj_state_array)
         self.get_logger().info(f"Publishing {len(obj_state_array.states)} objects at frame {i_frame}")
 
         # publish agent ground truth states
@@ -57,7 +76,7 @@ class CarlaPointSimulator(PointSimulator):
 def main(args=None):
     rclpy.init(args=args)
 
-    sim = PointSimulator()
+    sim = CarlaPointSimulator()
 
     rclpy.spin(sim)
 
