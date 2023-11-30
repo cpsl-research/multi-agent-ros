@@ -1,6 +1,3 @@
 [submodule "submodules/avstack-rosbridge"]
 	path = submodules/avstack-rosbridge
 	url = https://github.com/avstack-lab/avstack-rosbridge
-[submodule "submodules/lib-avstack-api"]
-	path = submodules/lib-avstack-api
-	url = https://github.com/avstack-lab/lib-avstack-api
