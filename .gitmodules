@@ -1,3 +1,12 @@
 [submodule "submodules/avstack-rosbridge"]
 	path = submodules/avstack-rosbridge
 	url = https://github.com/avstack-lab/avstack-rosbridge
+[submodule "submodules/multi-agent-trust-estimator"]
+	path = submodules/multi-agent-trust-estimator
+	url = https://github.com/cpsl-research/multi-agent-trust-estimator
+[submodule "submodules/lib-avstack-api"]
+	path = submodules/lib-avstack-api
+	url = https://github.com/avstack-lab/lib-avstack-api
+[submodule "submodules/lib-avstack-core"]
+	path = submodules/lib-avstack-core
+	url = https://github.com/avstack-lab/lib-avstack-core
