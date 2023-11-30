@@ -21,7 +21,7 @@ class AvstackBridgedVisualizer(Node):
 
     def listener_callback(self, msg):
         obj_state_array = self.object_bridge.objectstatearray_to_avstack(msg)
-        self.get_logger().info(f"Received {len(obj_state_array)} objects")
+        # self.get_logger().info(f"Received {len(obj_state_array)} objects")
 
 
 def main(args=None):

@@ -1,18 +1,15 @@
 import rclpy
 from rclpy.node import Node
 
-from avstack_msgs.msg import ObjectStateArray
+from vision_msgs.msg import BoundingBox3DArray
+from avstack_msgs.msg import ObjectStateStamped, ObjectStateArray
 
 from mar_msgs.srv import SpawnAgent
 
-from tf2_ros import TransformException, TransformListener
+from tf2_ros import TransformListener
 from tf2_ros.buffer import Buffer
 
 from .loaders import CarlaDatasetLoader
-
-
-def spawn_agent(pipeline: str, name: str) -> Node:
-    pass
 
 
 class PointSimulator(Node):
@@ -23,18 +20,6 @@ class PointSimulator(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        # spawn agent service
-        self.srv = self.create_service(SpawnAgent, "spawn_agent", self.spawn_agent_callback)
-        self.agents = {}
-
-    def spawn_agent_callback(self, request, response):
-        name = request.name if request.name else "agent_{}".format(len(self.agents))
-        if name in self.agents:
-            self.get_logger().warning(f"Cannot spawn agent because name {name} already exists")
-        self.agents[name] = spawn_agent(request.pipeline, name)
-        response.name = name
-        return response
-
 
 class CarlaPointSimulator(PointSimulator):
     def __init__(self):
@@ -42,34 +27,49 @@ class CarlaPointSimulator(PointSimulator):
 
         # parameters
         self.declare_parameter("real_time_framerate", 10)
-        self.declare_parameter("dataset_path", "/data/shared/CARLA/object-v1")
+        self.declare_parameter("dataset_path", "/data/shared/CARLA/multi-agent-v1")
         self.declare_parameter("scene_idx", 0)
+        self.declare_parameter("i_frame_start", 4)
+        self.declare_parameter("n_agents", 0)
 
         # set things based on params
         rt_framerate = self.get_parameter("real_time_framerate").value
         self.loader = CarlaDatasetLoader(
             dataset_path=self.get_parameter("dataset_path").value,
             scene_idx=self.get_parameter("scene_idx").value,
-            tf_buffer=self.tf_buffer
+            tf_buffer=self.tf_buffer,
+            i_frame_start=self.get_parameter("i_frame_start").value,
         )
 
-        # send spawn messages for agents
-        # TODO
-
-        # set ros actions
+        # all the publishers
         self.publisher_object_gt = self.create_publisher(ObjectStateArray, "object_truth", 10)
-        # self.publisher_agent_gt  = self.create_publisher(ObjectStateArray, "agent_truth", )
+        self.publisher_agent_gt  = {
+            f"agent{n}" : self.create_publisher(ObjectStateStamped, f"agent{n}/pose") 
+            for n in range(self.get_parameter("n_agents").value)
+        }
+        self.publisher_agent_gt["ego"] = self.create_publisher(ObjectStateStamped, "ego/pose", 10)
+        self.publisher_agent_dets = {
+            f"agent{n}" : self.create_publisher(BoundingBox3DArray, f"agent{n}/detections", 10)
+            for n in range(self.get_parameter("n_agents").value)
+        }
+        self.publisher_agent_dets["ego"] = self.create_publisher(BoundingBox3DArray, "ego/detections", 10)
 
+        # callback timers
         timer_period = 1.0 / rt_framerate
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
-        obj_state_array, i_frame = self.loader.load_next()
+        obj_state_array, agent_poses, agent_detections, i_frame = self.loader.load_next()
 
         # publish object ground truth states
         self.publisher_object_gt.publish(obj_state_array)
-        self.get_logger().info(f"Publishing {len(obj_state_array.states)} objects at frame {i_frame}")
+        for agent in agent_poses:
+            if agent_poses[agent] is not None:
+                self.publisher_agent_gt[agent].publish(agent_poses[agent])
+            if agent_detections[agent] is not None:
+                self.publisher_agent_dets[agent].publish(agent_detections[agent])
 
+        # self.get_logger().info(f"Publishing {len(obj_state_array.states)} objects at frame {i_frame}")
         # publish agent ground truth states
 
 
