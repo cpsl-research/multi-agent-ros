@@ -15,8 +15,9 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "~3.10"
 avstack_bridge = {path="./submodules/avstack-rosbridge/avstack_bridge/", develop=true}
-lib-avstack-core = {path="./submodules/avstack-rosbridge/submodules/lib-avstack-core", develop=true}  # is this necessary since its in avstack_bridge?
+lib-avstack-core = {path="./submodules/lib-avstack-core", develop=true}
 lib-avstack-api = {path="./submodules/lib-avstack-api", develop=true}
+mate = {path="./submodules/multi-agent-trust-estimator", develop=true}
 opencv-python = "=4.5.5.64"
 
 [tool.poetry.group.test.dependencies]

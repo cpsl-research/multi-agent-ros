@@ -1,0 +1,4 @@
+string pipeline  # name of the agent pipeline config (?)
+string name  # Optional.  A unique name will be created and returned if this is empty
+---
+string name

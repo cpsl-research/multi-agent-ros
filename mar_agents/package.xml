@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>mar_traffic_sim</name>
+  <name>mar_agents</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
   <maintainer email="spencer.hallyburton@duke.edu">spencer</maintainer>

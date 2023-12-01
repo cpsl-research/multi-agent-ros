@@ -6,7 +6,6 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-
     sim_config = os.path.join(
         get_package_share_directory("mar_bringup"),
         "config",
@@ -22,6 +21,6 @@ def generate_launch_description():
                 name="simulator",
                 parameters=[sim_config],
                 arguments=['--ros-args', '--log-level', 'INFO'],
-            )
+            ),
         ]
     )
