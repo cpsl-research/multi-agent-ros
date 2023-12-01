@@ -1,8 +1,7 @@
 import rclpy
-from rclpy.node import Node
-
 from avstack_bridge.objects import ObjectStateBridge
 from avstack_msgs.msg import ObjectStateArray
+from rclpy.node import Node
 
 
 class AvstackBridgedVisualizer(Node):

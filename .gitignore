@@ -1,2 +1,3 @@
+.install.stamp
 __pycache__
 *.egg*

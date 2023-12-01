@@ -1,14 +1,9 @@
 import rclpy
+from avstack_msgs.msg import ObjectStateArray
 from rclpy.node import Node
-
-from vision_msgs.msg import BoundingBox3DArray
-from avstack_msgs.msg import ObjectStateStamped, ObjectStateArray
-
-from mar_msgs.srv import SpawnAgent
-
-from tf2_ros import TransformListener
+from tf2_ros import TransformBroadcaster, TransformListener
 from tf2_ros.buffer import Buffer
-from tf2_ros import TransformBroadcaster
+from vision_msgs.msg import BoundingBox3DArray
 
 from .loaders import CarlaDatasetLoader
 
@@ -44,19 +39,30 @@ class CarlaPointSimulator(PointSimulator):
 
         # all the publishers
         self.tf_broadcaster = TransformBroadcaster(self)
-        self.publisher_object_gt = self.create_publisher(ObjectStateArray, "object_truth", 10)
+        self.publisher_object_gt = self.create_publisher(
+            ObjectStateArray, "object_truth", 10
+        )
         self.publisher_agent_dets = {
-            f"agent{n}" : self.create_publisher(BoundingBox3DArray, f"agent{n}/detections", 10)
+            f"agent{n}": self.create_publisher(
+                BoundingBox3DArray, f"agent{n}/detections", 10
+            )
             for n in range(self.get_parameter("n_agents").value)
         }
-        self.publisher_agent_dets["ego"] = self.create_publisher(BoundingBox3DArray, "ego/detections", 10)
+        self.publisher_agent_dets["ego"] = self.create_publisher(
+            BoundingBox3DArray, "ego/detections", 10
+        )
 
         # callback timers
         timer_period = 1.0 / rt_framerate
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
-        obj_state_array, agent_poses, agent_detections, i_frame = self.loader.load_next()
+        (
+            obj_state_array,
+            agent_poses,
+            agent_detections,
+            i_frame,
+        ) = self.loader.load_next()
 
         # publish object ground truth object states
         self.publisher_object_gt.publish(obj_state_array)

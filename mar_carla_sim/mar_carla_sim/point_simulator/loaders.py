@@ -1,17 +1,21 @@
-from avstack_msgs.msg import ObjectStateArray
-from avstack_bridge.objects import ObjectStateBridge
-from avstack_bridge.detections import DetectionBridge
-from tf2_ros.buffer import Buffer
-
-from avstack.environment.objects import ObjectState
 from avapi.carla.dataset import CarlaScenesManager
+from avstack_bridge.detections import DetectionBridge
+from avstack_bridge.objects import ObjectStateBridge
+from avstack_msgs.msg import ObjectStateArray
+from tf2_ros.buffer import Buffer
 
 
 class CarlaDatasetLoader:
-    def __init__(self, dataset_path: str, scene_idx: int, tf_buffer: Buffer, i_frame_start: int=0) -> None:
-        self.scene_dataset = CarlaScenesManager(data_dir=dataset_path).get_scene_dataset_by_index(
-            scene_idx=scene_idx
-        )
+    def __init__(
+        self,
+        dataset_path: str,
+        scene_idx: int,
+        tf_buffer: Buffer,
+        i_frame_start: int = 0,
+    ) -> None:
+        self.scene_dataset = CarlaScenesManager(
+            data_dir=dataset_path
+        ).get_scene_dataset_by_index(scene_idx=scene_idx)
         self.i_frame = i_frame_start  # start after initialization
         self.obj_bridge = ObjectStateBridge()
         self.det_bridge = DetectionBridge()
@@ -19,7 +23,7 @@ class CarlaDatasetLoader:
 
     def load_next(self) -> ObjectStateArray:
         """Loads the next set of data from the dataset
-        
+
         'next' is defined in this case as the next available frame of NPC data
         """
         objs = None
@@ -33,14 +37,16 @@ class CarlaDatasetLoader:
                     break
             else:
                 break
-        
+
         # Process objects once loaded
         if objs is None:
             # we must be done??
             # TODO -- how to exit?
             raise
         else:
-            objs_msgs = self.obj_bridge.avstack_to_objecstatearray(obj_states=objs, tf_buffer=self.tf_buffer)
+            objs_msgs = self.obj_bridge.avstack_to_objecstatearray(
+                obj_states=objs, tf_buffer=self.tf_buffer
+            )
 
             ####################################
             # Agent information
@@ -64,12 +70,16 @@ class CarlaDatasetLoader:
 
             # ego detections
             try:
-                ego_detections = self.scene_dataset.get_objects(frame=self.i_frame, sensor="main_lidar")
+                ego_detections = self.scene_dataset.get_objects(
+                    frame=self.i_frame, sensor="main_lidar"
+                )
             except FileNotFoundError:
                 agent_detections["ego"] = None
             else:
                 agent_detections["ego"] = self.det_bridge.avstack_to_detections(
-                    ego_detections, tf_buffer=self.tf_buffer, frame_override="ego",
+                    ego_detections,
+                    tf_buffer=self.tf_buffer,
+                    frame_override="ego",
                 )
 
             # for each infrastructure agent:
@@ -83,4 +93,3 @@ class CarlaDatasetLoader:
             #     objs_in_view = self.scene_dataset.get_objects(frame=self.i_frame, sensor="")
 
         return objs_msgs, agent_poses, agent_detections, self.i_frame
-        
