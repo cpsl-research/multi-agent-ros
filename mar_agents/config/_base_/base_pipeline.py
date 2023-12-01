@@ -16,7 +16,7 @@ pipeline = dict(
             ID=0,
             ID_input=[0],
             algorithm=dict(
-                type="BasicRazTracker",
+                type="BasicBoxTracker3D",
                 threshold_confirmed=5,
                 threshold_coast=20,
             ),

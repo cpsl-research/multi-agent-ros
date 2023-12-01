@@ -29,5 +29,4 @@ agent = dict(
             ),
         )
     ],
-    pipeline=None,
 )

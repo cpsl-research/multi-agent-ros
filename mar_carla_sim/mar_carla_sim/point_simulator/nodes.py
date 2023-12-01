@@ -8,6 +8,7 @@ from mar_msgs.srv import SpawnAgent
 
 from tf2_ros import TransformListener
 from tf2_ros.buffer import Buffer
+from tf2_ros import TransformBroadcaster
 
 from .loaders import CarlaDatasetLoader
 
@@ -42,12 +43,8 @@ class CarlaPointSimulator(PointSimulator):
         )
 
         # all the publishers
+        self.tf_broadcaster = TransformBroadcaster(self)
         self.publisher_object_gt = self.create_publisher(ObjectStateArray, "object_truth", 10)
-        self.publisher_agent_gt  = {
-            f"agent{n}" : self.create_publisher(ObjectStateStamped, f"agent{n}/pose") 
-            for n in range(self.get_parameter("n_agents").value)
-        }
-        self.publisher_agent_gt["ego"] = self.create_publisher(ObjectStateStamped, "ego/pose", 10)
         self.publisher_agent_dets = {
             f"agent{n}" : self.create_publisher(BoundingBox3DArray, f"agent{n}/detections", 10)
             for n in range(self.get_parameter("n_agents").value)
@@ -61,16 +58,17 @@ class CarlaPointSimulator(PointSimulator):
     def timer_callback(self):
         obj_state_array, agent_poses, agent_detections, i_frame = self.loader.load_next()
 
-        # publish object ground truth states
+        # publish object ground truth object states
         self.publisher_object_gt.publish(obj_state_array)
+
+        # publish agent pose information
         for agent in agent_poses:
-            if agent_poses[agent] is not None:
-                self.publisher_agent_gt[agent].publish(agent_poses[agent])
+            self.tf_broadcaster.sendTransform(agent_poses[agent])
+
+        # publish detection information
+        for agent in agent_detections:
             if agent_detections[agent] is not None:
                 self.publisher_agent_dets[agent].publish(agent_detections[agent])
-
-        # self.get_logger().info(f"Publishing {len(obj_state_array.states)} objects at frame {i_frame}")
-        # publish agent ground truth states
 
 
 def main(args=None):

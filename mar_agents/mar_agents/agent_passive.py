@@ -77,8 +77,13 @@ class PassiveAgent(Node):
 
     def dets_callback(self, msg):
         dets = self.dets_bridge.detections_to_avstack(msg, tf_buffer=self.tf_buffer)
-        tracks_out = self.pipeline(dets)
-        msg_track = self.track_bridge.avstack_to_tracks(tracks_out, tf_buffer=self.tf_buffer)
+        tracks_out = self.pipeline(
+            sensing={0:dets},
+            platform=dets[0].reference if len(dets) > 0 else None,
+            frame=dets.frame,
+            timestamp=dets.timestamp,
+        )
+        msg_track = self.track_bridge.avstack_to_tracks(tracks_out[0], tf_buffer=self.tf_buffer)
         self.publisher_tracks.publish(msg_track)
 
 

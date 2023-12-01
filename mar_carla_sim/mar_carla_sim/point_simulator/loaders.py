@@ -42,7 +42,6 @@ class CarlaDatasetLoader:
         else:
             objs_msgs = self.obj_bridge.avstack_to_objecstatearray(obj_states=objs, tf_buffer=self.tf_buffer)
 
-
             ####################################
             # Agent information
             # HACK: This is soooooo hacky
@@ -57,7 +56,11 @@ class CarlaDatasetLoader:
             except FileNotFoundError:
                 agent_poses["ego"] = None
             else:
-                agent_poses["ego"] = self.obj_bridge.avstack_to_objectstatestamped(ego, tf_buffer=self.tf_buffer)
+                # HACK for ego reference
+                ego_ref = ego.as_reference()
+                ego_ref.to_frame = "ego"
+                ego_ref.from_frame = "world"
+                agent_poses["ego"] = self.obj_bridge.reference_to_tf2_stamped(ego_ref)
 
             # ego detections
             try:
