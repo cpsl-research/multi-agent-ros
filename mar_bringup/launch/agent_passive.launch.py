@@ -1,15 +1,11 @@
-import os
-
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, TimerAction
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
     agent_name = LaunchConfiguration('agent_name')
-    agent_pipeline = LaunchConfiguration('agent_pipeline')
 
     agent_name_launch_arg = DeclareLaunchArgument(
         'agent_name',
@@ -18,22 +14,14 @@ def generate_launch_description():
 
     agent_pipeline_launch_arg = DeclareLaunchArgument(
         'agent_pipeline',
-        default_value='passive_agent_pipeline.yml'
+        default_value='passive_agent.py'
     )
-
-    # agent_config = PathJoinSubstitution([
-    #     get_package_share_directory("mar_bringup"),
-    #     "config",
-    #     "agent",
-    #     agent_pipeline,
-    # ])
 
     agent_node = Node(
         package="mar_agents",
         executable="agent_passive",
         namespace=agent_name,
         name="agent",
-        # parameters=[agent_config],
         arguments=['--ros-args', '--log-level', 'INFO'],
     )
 

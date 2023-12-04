@@ -33,7 +33,6 @@ class CarlaPointSimulator(PointSimulator):
         self.loader = CarlaDatasetLoader(
             dataset_path=self.get_parameter("dataset_path").value,
             scene_idx=self.get_parameter("scene_idx").value,
-            tf_buffer=self.tf_buffer,
             i_frame_start=self.get_parameter("i_frame_start").value,
         )
 
@@ -73,8 +72,9 @@ class CarlaPointSimulator(PointSimulator):
 
         # publish detection information
         for agent in agent_detections:
-            if agent_detections[agent] is not None:
-                self.publisher_agent_dets[agent].publish(agent_detections[agent])
+            if agent in self.publisher_agent_dets:
+                if agent_detections[agent] is not None:
+                    self.publisher_agent_dets[agent].publish(agent_detections[agent])
 
 
 def main(args=None):

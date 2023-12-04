@@ -55,11 +55,25 @@ def generate_launch_description():
         ),
         launch_arguments={
             'agent_name': 'ego',
-            'agent_pipeline': 'passive_agent_pipeline.yml'
+            'agent_pipeline': 'passive_agent.py'
         }.items()
     )
 
     inf_agents = OpaqueFunction(function=get_infra_agents)
+
+    command_center = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(
+                    get_package_share_directory("mar_bringup"), "launch"
+                ),
+                "/command_center.launch.py"
+            ]
+        ),
+        launch_arguments={
+            'cc_pipeline': 'command_center.py'
+        }.items()
+    )
 
     visualizer = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -80,5 +94,6 @@ def generate_launch_description():
             visualizer,
             ego_agent,
             inf_agents,
+            command_center,
         ]
     )

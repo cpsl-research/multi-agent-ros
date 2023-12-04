@@ -46,15 +46,16 @@ class CommandCenterPipeline:
     """Fusion pipeline for the command center"""
 
     def __init__(
-        self, clustering: ConfigDict, group_tracking: ConfigDict, trust: ConfigDict
+        self,
+        clustering: ConfigDict,
+        group_tracking: ConfigDict,  # trust: ConfigDict
     ) -> None:
         self.clustering = ALGORITHMS.build(clustering)
         self.group_tracking = ALGORITHMS.build(group_tracking)
-        self.trust = PIPELINE.build(trust)
+        # self.trust = PIPELINE.build(trust)
 
     def __call__(
         self,
-        agents: list,
         tracks_in: dict,
         platform: ReferenceFrame,
         frame: int,
@@ -69,7 +70,7 @@ class CommandCenterPipeline:
             clusters=clusters, platform=platform, frame=frame, timestamp=timestamp
         )
         group_tracks = [track for track in group_tracks if len(track.members) > 0]
-        cluster_trusts, agent_trusts = self.trust(
-            group_tracks=group_tracks, agents=agents, timestamp=timestamp
-        )
-        return group_tracks, cluster_trusts, agent_trusts
+        # cluster_trusts, agent_trusts = self.trust(
+        #     group_tracks=group_tracks, agents=agents, timestamp=timestamp
+        # )
+        return group_tracks  # , cluster_trusts, agent_trusts
