@@ -20,7 +20,7 @@ def get_infra_agents(context):
             ),
             launch_arguments={
                 'agent_name': f'agent{i}',
-                'agent_pipeline': 'passive_agent_pipeline.yml'
+                'agent_pipeline': 'passive_agent.py'
             }.items(),
         ) for i in range(int(context.launch_configurations['n_infrastructure_agents']))
     ]
