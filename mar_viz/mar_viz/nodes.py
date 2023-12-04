@@ -13,9 +13,13 @@ class AvstackBridgedVisualizer(Node):
     def __init__(self):
         super().__init__("visualizer")
 
+        self.debug_logging = False
+        
         self.object_bridge = ObjectStateBridge()
 
-        self.gt_visualization_method = "bb"  # "arrow" or "bb" (bounding boxes)
+        #initialize different colors
+        self.colors = {}
+        self._init_colors()
 
         # subscribe to ground truth object information
         self.gt_subscription = None
@@ -33,7 +37,9 @@ class AvstackBridgedVisualizer(Node):
         self._tracks_pubs = {}
         self._tracks_subs = {}
 
-        self.add_agent(agent_namespace="ego")
+        #start new agent discovery
+        self.new_agent_discovery_timer = None
+        self.new_agent_discovery_init_timer()
 
         return
 
@@ -58,9 +64,41 @@ class AvstackBridgedVisualizer(Node):
 
     def _gt_sub_callback(self, msg:ObjectStateArray):
 
-        points = self._objectStateArray_to_markerArray(msg)
+        points = self._objectStateArray_to_markerArray(
+            msg = msg,
+            namespace="object_truth",
+            color = self.colors["blue"]
+        )
         self.gt_publisher.publish(points)
         # self.get_logger().info("Received {} objects".format(len(msg.states)))
+
+    '''
+    ##########################################################
+    Finding new agents
+    ##########################################################
+    '''
+    def new_agent_discovery_init_timer(self):
+        self.new_agent_discovery_timer = self.create_timer(
+            timer_period_sec = 1.0,
+            callback = self.new_agent_discovery_callback
+        )
+    
+    def new_agent_discovery_callback(self):
+        
+        #get the node names and namespaces
+        node_names_and_namespaces = self.get_node_names_and_namespaces()
+
+        #check for new agents
+        for name,namespace in node_names_and_namespaces:
+            if (
+                ("ego" in namespace)
+                or ("agent" in namespace)
+                and ("command_center" not in namespace)
+            ):
+                if namespace not in self._agent_namespaces:
+                    self.add_agent(
+                        agent_namespace=namespace
+                    )
 
     '''
     ##########################################################
@@ -83,7 +121,6 @@ class AvstackBridgedVisualizer(Node):
 
 
         else:
-            #TODO: Check this behavior with Spencer
             self.get_logger().info("Visualizer attempted to add {}, but it already existed".format(agent_namespace))
     
     
@@ -110,9 +147,13 @@ class AvstackBridgedVisualizer(Node):
 
     def _detections_sub_callback(self,msg:BoundingBox3DArray,agent_namespace:str):
 
-        markers = self._boundingBox3DArray_to_markerArray(msg)
+        markers = self._boundingBox3DArray_to_markerArray(
+            msg=msg,
+            namespace=agent_namespace,
+            color=self.colors["red"])
         self._detections_pubs[agent_namespace].publish(markers)
-        self.get_logger().info("Received {} detections from {}".format(len(msg.boxes),agent_namespace))
+        if self.debug_logging:
+            self.get_logger().info("Received {} detections from {}".format(len(msg.boxes),agent_namespace))
 
     '''
     ##########################################################
@@ -138,9 +179,13 @@ class AvstackBridgedVisualizer(Node):
 
     def _tracks_sub_callback(self,msg:ObjectStateArray,agent_namespace:str):
 
-        markers = self._objectStateArray_to_markerArray(msg)
+        markers = self._objectStateArray_to_markerArray(
+            msg=msg,
+            namespace=agent_namespace,
+            color=self.colors["green"])
         self._tracks_pubs[agent_namespace].publish(markers)
-        self.get_logger().info("Received {} tracks from {}".format(len(msg.states),agent_namespace))
+        if self.debug_logging:
+            self.get_logger().info("Received {} tracks from {}".format(len(msg.states),agent_namespace))
 
     
     '''
@@ -149,7 +194,7 @@ class AvstackBridgedVisualizer(Node):
     ##########################################################
     '''
 
-    def _boundingBox3DArray_to_markerArray(self,msg:BoundingBox3DArray) -> MarkerArray:
+    def _boundingBox3DArray_to_markerArray(self,msg:BoundingBox3DArray,namespace,color:ColorRGBA) -> MarkerArray:
 
         # define a new marker array
         detections = MarkerArray()
@@ -164,7 +209,8 @@ class AvstackBridgedVisualizer(Node):
                     bounding_box_3D=msg.boxes[i],
                     header=header,
                     id = i,
-                    name_space="ego"
+                    namespace=namespace,
+                    color=color
                 )
             )
 
@@ -174,17 +220,18 @@ class AvstackBridgedVisualizer(Node):
                             bounding_box_3D:BoundingBox3D,
                             header:Header,
                             id:int,
-                            name_space:str="ego") -> Marker:
+                            namespace:str,
+                            color:ColorRGBA) -> Marker:
 
         # define a new marker
         marker = Marker()
 
         # initialize the header
-        marker.header.frame_id = "ego"
+        marker.header.frame_id = header.frame_id
         marker.header.stamp = header.stamp
 
         # define the marker attributes
-        marker.ns = name_space
+        marker.ns = namespace
         marker.id = id
         marker.type = Marker.CUBE
 
@@ -200,14 +247,11 @@ class AvstackBridgedVisualizer(Node):
         marker.pose.position = bounding_box_3D.center.position
 
         # define the color
-        marker.color.a = 1.0
-        marker.color.r = 1.0
-        marker.color.g = 0.0
-        marker.color.b = 0.0
+        marker.color = color
 
         return marker
 
-    def _objectStateArray_to_markerArray(self,msg:ObjectStateArray) -> MarkerArray:
+    def _objectStateArray_to_markerArray(self,msg:ObjectStateArray,namespace,color:ColorRGBA) -> MarkerArray:
 
         #define a new marker array
         points = MarkerArray()
@@ -224,7 +268,8 @@ class AvstackBridgedVisualizer(Node):
                     object_state=msg.states[i],
                     header=header,
                     id = i,
-                    name_space="gt"
+                    namespace=namespace,
+                    color=color
                 )
             )
         
@@ -235,7 +280,8 @@ class AvstackBridgedVisualizer(Node):
                             object_state:ObjectState,
                             header:Header,
                             id:int,
-                            name_space:str="gt") -> Marker:
+                            namespace:str,
+                            color:ColorRGBA) -> Marker:
 
         # define a new marker
         marker = Marker()
@@ -245,7 +291,7 @@ class AvstackBridgedVisualizer(Node):
         marker.header.stamp = header.stamp
 
         # define the marker attributes
-        marker.ns = name_space
+        marker.ns = namespace
         marker.id = id
         marker.type = Marker.CUBE
 
@@ -261,10 +307,7 @@ class AvstackBridgedVisualizer(Node):
         marker.pose.position = object_state.box.center.position
 
         # define the color
-        marker.color.a = 1.0
-        marker.color.r = 0.0
-        marker.color.g = 0.0
-        marker.color.b = 1.0
+        marker.color = color
 
         return marker
 
@@ -273,6 +316,16 @@ class AvstackBridgedVisualizer(Node):
     Defining Custom Colors for Visualization
     ##########################################################
     '''
+    def _init_colors(self):
+
+        #primary colors
+        self.colors["red"] = ColorRGBA(a=1.0,r=1.0,g=0.0,b=0.0)
+        self.colors["green"] = ColorRGBA(a=1.0,r=0.0,g=1.0,b=0.0)
+        self.colors["blue"] = ColorRGBA(a=1.0,r=0.0,g=0.0,b=1.0)
+
+        self.colors["yellow"] = ColorRGBA(a=1.0,r=1.0,g=1.0,b=0.0)
+        self.colors["purple"] = ColorRGBA(a=1.0,r=1.0,g=0.0,b=1.0)
+
 
 
 def main(args=None):
