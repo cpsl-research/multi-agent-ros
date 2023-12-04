@@ -207,8 +207,6 @@ class AvstackBridgedVisualizer(Node):
 
         return marker
 
-    def objectStateArray_to_markerArray(self, msg: ObjectStateArray) -> MarkerArray:
-
     def _objectStateArray_to_markerArray(self,msg:ObjectStateArray) -> MarkerArray:
 
         #define a new marker array
@@ -231,9 +229,7 @@ class AvstackBridgedVisualizer(Node):
             )
         
         return points
-
-
-    
+   
 
     def _objectState_to_marker(self,
                             object_state:ObjectState,
