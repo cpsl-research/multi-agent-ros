@@ -3,12 +3,14 @@ from functools import partial
 import rclpy
 from avstack.datastructs import DataManager
 from avstack_bridge.base import Bridge
+from avstack_bridge.transform import do_transform_object_state
 from avstack_msgs.msg import (
     ObjectStateArray,
     ObjectStateArrayWithSender,
     ObjectStateArrayWithSenderArray,
 )
 from rclpy.node import Node
+from std_msgs.msg import Header
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
@@ -91,23 +93,26 @@ class CommandCenterBroker(Node):
                     to_frame = data.header.frame_id
                     from_frame = "world"
                     when = data.header.stamp
-                    transform = await self._tf_buffer.lookup_transform_async(
+                    tf = await self._tf_buffer.lookup_transform_async(
                         to_frame, from_frame, when
                     )
 
                     # once we have transform, apply it
+                    new_states = [
+                        do_transform_object_state(state, tf) for state in data.states
+                    ]
+                    new_header = Header(frame_id="world", stamp=when)
 
                     # save transformed state array
                     state_arrays.append(
                         ObjectStateArrayWithSender(
-                            header=data.header, states=data.states, sender_id=ID
+                            header=new_header, states=new_states, sender_id=ID
                         )
                     )
                 obj_arrarr_msg = ObjectStateArrayWithSenderArray(
                     state_arrays=state_arrays
                 )
                 self.publisher_collated.publish(obj_arrarr_msg)
-                self.get_logger().info("Publishing collated tracks!")
 
 
 def main(args=None):
