@@ -1,0 +1,32 @@
+{
+    "python.analysis.extraPaths": [
+        "/home/david/colcon_ws/build/mar_viz",
+        "/home/david/colcon_ws/install/mar_viz/lib/python3.10/site-packages",
+        "/home/david/colcon_ws/build/mar_traffic_sim",
+        "/home/david/colcon_ws/install/mar_traffic_sim/lib/python3.10/site-packages",
+        "/home/david/colcon_ws/build/mar_carla_sim",
+        "/home/david/colcon_ws/install/mar_carla_sim/lib/python3.10/site-packages",
+        "/home/david/colcon_ws/build/mar_algs",
+        "/home/david/colcon_ws/install/mar_algs/lib/python3.10/site-packages",
+        "/home/david/colcon_ws/build/avstack_bridge",
+        "/home/david/colcon_ws/install/avstack_bridge/lib/python3.10/site-packages",
+        "/home/david/colcon_ws/install/avstack_msgs/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.autoComplete.extraPaths": [
+        "/home/david/colcon_ws/build/mar_viz",
+        "/home/david/colcon_ws/install/mar_viz/lib/python3.10/site-packages",
+        "/home/david/colcon_ws/build/mar_traffic_sim",
+        "/home/david/colcon_ws/install/mar_traffic_sim/lib/python3.10/site-packages",
+        "/home/david/colcon_ws/build/mar_carla_sim",
+        "/home/david/colcon_ws/install/mar_carla_sim/lib/python3.10/site-packages",
+        "/home/david/colcon_ws/build/mar_algs",
+        "/home/david/colcon_ws/install/mar_algs/lib/python3.10/site-packages",
+        "/home/david/colcon_ws/build/avstack_bridge",
+        "/home/david/colcon_ws/install/avstack_bridge/lib/python3.10/site-packages",
+        "/home/david/colcon_ws/install/avstack_msgs/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}
