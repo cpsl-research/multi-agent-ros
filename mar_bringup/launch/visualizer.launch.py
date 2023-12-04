@@ -22,6 +22,19 @@ def generate_launch_description():
                 name="visualizer",
                 parameters=[viz_config],
                 arguments=['--ros-args', '--log-level', 'INFO'],
+            ),
+            Node(
+                package='rviz2',
+                namespace='',
+                executable='rviz2',
+                name='rviz2',
+                arguments = ['-d',
+                             os.path.join(
+                            get_package_share_directory("mar_bringup"),
+                            "config",
+                            "visualizer",
+                            "rviz_configuration.rviz")
+                            ]
             )
         ]
     )
