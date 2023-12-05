@@ -26,7 +26,7 @@ class CommandCenter(BaseAgent):
         # obj_states = None
         # fused_out = self.pipeline()
         # msg_fused = self.
-        pass
+        self.get_logger().info("Received states from {} agents".format(len(msg.state_arrays)))
 
 
 def main(args=None):

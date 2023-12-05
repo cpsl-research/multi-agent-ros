@@ -26,7 +26,6 @@ class CarlaPointSimulator(PointSimulator):
         self.declare_parameter("dataset_path", "/data/shared/CARLA/multi-agent-v1")
         self.declare_parameter("scene_idx", 0)
         self.declare_parameter("i_frame_start", 4)
-        self.declare_parameter("n_agents", 0)
 
         # set things based on params
         rt_framerate = self.get_parameter("real_time_framerate").value
@@ -41,15 +40,7 @@ class CarlaPointSimulator(PointSimulator):
         self.publisher_object_gt = self.create_publisher(
             ObjectStateArray, "object_truth", 10
         )
-        self.publisher_agent_dets = {
-            f"agent{n}": self.create_publisher(
-                BoundingBox3DArray, f"agent{n}/detections", 10
-            )
-            for n in range(self.get_parameter("n_agents").value)
-        }
-        self.publisher_agent_dets["ego"] = self.create_publisher(
-            BoundingBox3DArray, "ego/detections", 10
-        )
+        self.publisher_agent_dets = {}
 
         # callback timers
         timer_period = 1.0 / rt_framerate
@@ -72,9 +63,12 @@ class CarlaPointSimulator(PointSimulator):
 
         # publish detection information
         for agent in agent_detections:
-            if agent in self.publisher_agent_dets:
-                if agent_detections[agent] is not None:
-                    self.publisher_agent_dets[agent].publish(agent_detections[agent])
+            if agent not in self.publisher_agent_dets:
+                self.publisher_agent_dets[agent] = self.create_publisher(
+                    BoundingBox3DArray, f"{agent}/detections", 10
+                )
+            if agent_detections[agent] is not None:
+                self.publisher_agent_dets[agent].publish(agent_detections[agent])
 
 
 def main(args=None):

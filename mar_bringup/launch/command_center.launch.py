@@ -31,6 +31,6 @@ def generate_launch_description():
         [
             cc_pipeline_launch_arg,
             cc_broker_node,
-            # cc_node,
+            cc_node,
         ]
     )

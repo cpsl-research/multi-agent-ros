@@ -14,14 +14,6 @@ class PassiveAgent(BaseAgent):
     def __init__(self):
         super().__init__(name="agent", default_pipeline="passive_agent.py")
 
-        # passive agents subscribe to their own pose information
-        self.subscriber_pose = self.create_subscription(
-            ObjectStateStamped,
-            "pose",
-            self.pose_callback,
-            10,
-        )
-
         # passive agents subscribe to sensor/detection messages
         self.subscriber_dets = self.create_subscription(
             BoundingBox3DArray,
@@ -32,9 +24,6 @@ class PassiveAgent(BaseAgent):
 
         # passive agents publish track information
         self.publisher_tracks = self.create_publisher(ObjectStateArray, "tracks", 10)
-
-    def pose_callback(self, msg):
-        pass  # don't really need to do anything here
 
     def dets_callback(self, msg):
         dets = self.dets_bridge.detections_to_avstack(msg)

@@ -30,7 +30,7 @@ def generate_launch_description():
     # n_infrastructure_agents = LaunchConfiguration('n_infrastructure_agents')
     n_infrastructure_agents_launch_arg = DeclareLaunchArgument(
         'n_infrastructure_agents',
-        default_value="0"
+        default_value="4"
     )
 
     simulator = IncludeLaunchDescription(
