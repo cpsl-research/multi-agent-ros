@@ -9,6 +9,8 @@ from avstack_msgs.msg import (
     ObjectStateArrayWithSenderArray,
 )
 from rclpy.node import Node
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
 
 
 class CommandCenterBroker(Node):
@@ -19,6 +21,9 @@ class CommandCenterBroker(Node):
 
     def __init__(self):
         super().__init__("command_center_broker")
+        self._tf_buffer = Buffer()
+        self._tf_listener = TransformListener(self._tf_buffer, self)
+
         self.agent_subscribers = {}
 
         # this defaults as a min-heap, so the top item has "lowest" time
@@ -64,7 +69,7 @@ class CommandCenterBroker(Node):
         self.get_logger().info(str(data[0]))
         self.data_manager.push(data, ID=agent)
 
-    def check_datamanager_callback(self):
+    async def check_datamanager_callback(self):
         """Check if we are ready to send out the collated message
 
         NOTE: there are MANY ways that we could do this. One of which
@@ -82,6 +87,17 @@ class CommandCenterBroker(Node):
                 data_arrays = self.data_manager.pop(s_ID=None, with_priority=False)
                 state_arrays = []
                 for ID, data in data_arrays.items():
+                    # Suspends callback until transform becomes available
+                    to_frame = data.header.frame_id
+                    from_frame = "world"
+                    when = data.header.stamp
+                    transform = await self._tf_buffer.lookup_transform_async(
+                        to_frame, from_frame, when
+                    )
+
+                    # once we have transform, apply it
+
+                    # save transformed state array
                     state_arrays.append(
                         ObjectStateArrayWithSender(
                             header=data.header, states=data.states, sender_id=ID
