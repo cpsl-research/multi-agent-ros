@@ -5,8 +5,8 @@ information from all of the agents.
 """
 
 import rclpy
-
 from avstack_msgs.msg import ObjectStateArray, ObjectStateArrayWithSenderArray
+
 from .base import BaseAgent
 
 
@@ -20,9 +20,7 @@ class CommandCenter(BaseAgent):
         )
 
         # publish fused results
-        self.pubsliher_fused = self.create_publisher(
-            ObjectStateArray, "fused", 10
-        )
+        self.pubsliher_fused = self.create_publisher(ObjectStateArray, "fused", 10)
 
     def pipeline_callback(self, msg: ObjectStateArrayWithSenderArray):
         # obj_states = None

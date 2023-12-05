@@ -68,7 +68,6 @@ class CommandCenterBroker(Node):
     def tracks_callback(self, msg, agent):
         """Add new track information to the data manager"""
         data = (Bridge.rostime_to_time(msg.header.stamp), msg)
-        self.get_logger().info(str(data[0]))
         self.data_manager.push(data, ID=agent)
 
     async def check_datamanager_callback(self):

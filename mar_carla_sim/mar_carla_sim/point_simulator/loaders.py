@@ -74,7 +74,7 @@ class CarlaDatasetLoader:
                     ):
                         agent_names[agent_lidar_sensor] = f"agent{ID}"
                         ID += 1
-                agent_names["ego"] = "ego"
+                agent_names["main_lidar"] = "ego"
 
                 # loop over agents
                 for sensor_name, agent_name in agent_names.items():
@@ -96,6 +96,11 @@ class CarlaDatasetLoader:
                     agent_dets = self.scene_dataset.get_objects(
                         frame=self.i_frame, sensor=sensor_name
                     )
+                    if agent_name == "ego":
+                        agent_dets = [
+                            det.change_reference(agent_ref, inplace=False)
+                            for det in agent_dets
+                        ]
                     passive_ref = PassiveReferenceFrame(
                         frame_id=agent_name, timestamp=timestamp
                     )
@@ -108,44 +113,3 @@ class CarlaDatasetLoader:
                     )
 
         return objs_msgs, agent_poses, agent_detections, self.i_frame
-
-        # # ego pose
-        # try:
-        #     ego = self.scene_dataset.get_ego(frame=self.i_frame)
-        # except FileNotFoundError:
-        #     agent_poses["ego"] = None
-        # else:
-        #     # HACK for ego reference
-        #     ego_ref = ego.as_reference()
-        #     ego_ref.to_frame = "ego"
-        #     ego_ref.from_frame = "world"
-        #     ego_ref.timestamp = timestamp
-        #     agent_poses["ego"] = Bridge.reference_to_tf2_stamped(ego_ref)
-
-        # # ego detections
-        # try:
-        #     ego_detections = self.scene_dataset.get_objects(
-        #         frame=self.i_frame, sensor="main_lidar"
-        #     )
-        # except FileNotFoundError:
-        #     agent_detections["ego"] = None
-        # else:
-        #     ego_obj_header = Bridge.reference_to_header(
-        #         PassiveReferenceFrame(
-        #             frame_id="ego",
-        #             timestamp=timestamp,
-        #         )
-        #     )
-        #     agent_detections["ego"] = DetectionBridge.avstack_to_detections(
-        #         ego_detections,
-        #         header=ego_obj_header,
-        #     )
-
-        # # agent detections
-        # ID = 0
-
-        #         agent_ref = self.scene_dataset.get_agent(frame=self.i_frame)
-        #         ID += 1
-
-        #     agent_name = "agent"
-        #     objs_in_view = self.scene_dataset.get_objects(frame=self.i_frame, sensor="")
