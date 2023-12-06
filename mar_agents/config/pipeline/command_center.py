@@ -8,8 +8,8 @@ pipeline = dict(
     ),
     group_tracking=dict(
         type="GroupTrackerWrapper",
-        fusion=dict(type="CovarianceIntersectionFusion"),
-        tracker=dict(type="BasicXyzTracker"),
+        fusion=dict(type="CovarianceIntersectionFusionToBox"),
+        tracker=dict(type="BasicBoxTracker3D", check_reference=False),
     ),
     # trust=dict(type="NoTrustPipeline"),
 )

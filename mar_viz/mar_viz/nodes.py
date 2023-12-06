@@ -125,7 +125,7 @@ class AvstackBridgedVisualizer(Node):
             if (
                 ("ego" in namespace)
                 or ("agent" in namespace)
-                and ("command_center" not in namespace)
+                or ("command_center" in namespace)
             ):
                 if namespace not in self._agent_namespaces:
                     self._add_agent(agent_namespace=namespace)
@@ -141,7 +141,7 @@ class AvstackBridgedVisualizer(Node):
         detections and tracking
 
         Args:
-            agent_namespace (str): the agent's namespace (ex:"ego" or "agent1")
+            agent_namespace (str): the agent's namespace (ex:"ego" or "agent1" or "command_center")
         """
 
         if agent_namespace not in self._agent_namespaces:
@@ -151,7 +151,8 @@ class AvstackBridgedVisualizer(Node):
             self.get_logger().info("Visualizer added {}".format(agent_namespace))
 
             # create a publisher/subscriber for the agent's detections
-            self._detections_init_pub_sub(agent_namespace)
+            if "command_center" not in agent_namespace:
+                self._detections_init_pub_sub(agent_namespace)
 
             # create a publisher/subscriber for the agent's tracks
             self._tracks_init_pub_sub(agent_namespace)
