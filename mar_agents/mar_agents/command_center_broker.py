@@ -3,12 +3,14 @@ from functools import partial
 import rclpy
 from avstack.datastructs import DataManager
 from avstack_bridge.base import Bridge
+from avstack_bridge.transform import do_transform_box_track
 from avstack_msgs.msg import (
-    ObjectStateArray,
-    ObjectStateArrayWithSender,
-    ObjectStateArrayWithSenderArray,
+    BoxTrackArray,
+    BoxTrackArrayWithSender,
+    BoxTrackArrayWithSenderArray,
 )
 from rclpy.node import Node
+from std_msgs.msg import Header
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
@@ -21,6 +23,11 @@ class CommandCenterBroker(Node):
 
     def __init__(self):
         super().__init__("command_center_broker")
+
+        # set to True for more detailed logging for debugging
+        self.declare_parameter("debug", False)
+        self.debug = self.get_parameter("debug").value
+
         self._tf_buffer = Buffer()
         self._tf_listener = TransformListener(self._tf_buffer, self)
 
@@ -43,7 +50,7 @@ class CommandCenterBroker(Node):
             publish_timer_period, self.check_datamanager_callback
         )
         self.publisher_collated = self.create_publisher(
-            ObjectStateArrayWithSenderArray, "collated", 10
+            BoxTrackArrayWithSenderArray, "collated", 10
         )
 
     def discovery_callback(self):
@@ -57,7 +64,7 @@ class CommandCenterBroker(Node):
             ):
                 if namespace not in self.agent_subscribers:
                     self.agent_subscribers[namespace] = self.create_subscription(
-                        ObjectStateArray,
+                        BoxTrackArray,
                         f"{namespace}/tracks",
                         partial(self.tracks_callback, agent=namespace),
                         10,
@@ -66,7 +73,6 @@ class CommandCenterBroker(Node):
     def tracks_callback(self, msg, agent):
         """Add new track information to the data manager"""
         data = (Bridge.rostime_to_time(msg.header.stamp), msg)
-        self.get_logger().info(str(data[0]))
         self.data_manager.push(data, ID=agent)
 
     async def check_datamanager_callback(self):
@@ -85,29 +91,38 @@ class CommandCenterBroker(Node):
             else:  # all must have data if we made it here
                 # take the oldest data from all and check the synchronicity
                 data_arrays = self.data_manager.pop(s_ID=None, with_priority=False)
-                state_arrays = []
+                track_arrays = []
                 for ID, data in data_arrays.items():
                     # Suspends callback until transform becomes available
                     to_frame = data.header.frame_id
                     from_frame = "world"
                     when = data.header.stamp
-                    transform = await self._tf_buffer.lookup_transform_async(
+                    if self.debug:
+                        self.get_logger().info(
+                            "Awaiting transform:\n  to: {}\n  from: {}\n  when: {}".format(
+                                to_frame, from_frame, when
+                            )
+                        )
+                    tf = await self._tf_buffer.lookup_transform_async(
                         to_frame, from_frame, when
                     )
+                    if self.debug:
+                        self.get_logger().info("Found transform!")
 
                     # once we have transform, apply it
+                    new_tracks = [
+                        do_transform_box_track(track, tf) for track in data.tracks
+                    ]
+                    new_header = Header(frame_id="world", stamp=when)
 
-                    # save transformed state array
-                    state_arrays.append(
-                        ObjectStateArrayWithSender(
-                            header=data.header, states=data.states, sender_id=ID
+                    # save transformed track array
+                    track_arrays.append(
+                        BoxTrackArrayWithSender(
+                            header=new_header, tracks=new_tracks, sender_id=ID
                         )
                     )
-                obj_arrarr_msg = ObjectStateArrayWithSenderArray(
-                    state_arrays=state_arrays
-                )
-                self.publisher_collated.publish(obj_arrarr_msg)
-                self.get_logger().info("Publishing collated tracks!")
+                trk_arrarr_msg = BoxTrackArrayWithSenderArray(track_arrays=track_arrays)
+                self.publisher_collated.publish(trk_arrarr_msg)
 
 
 def main(args=None):

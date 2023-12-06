@@ -5,64 +5,59 @@ information from all of the agents.
 """
 
 import rclpy
-from avstack_msgs.msg import ObjectStateArray
-from rclpy.node import Node
+from avstack_bridge.base import Bridge
+from avstack_bridge.tracks import TrackBridge
+from avstack_msgs.msg import BoxTrackArrayWithSenderArray, ObjectStateArray
+from std_msgs.msg import Header
 
 from .base import BaseAgent
 
 
-class CommandCenterBroker(Node):
-    """The broker is responsible for collating the
-    information from the agents before sending it to the command
-    center algorithms to be processed
-    """
-
+class CommandCenter(BaseAgent):
     def __init__(self):
         super().__init__(name="command_center", default_pipeline="command_center.py")
-        self.agent_subscribers = {}
 
-        # discovery timer
-        timer_period = 1.0  # run every 1 second
-        self.timer = self.create_timer(timer_period, self.discovery_callback)
+        # set to True for more detailed logging for debugging
+        self.declare_parameter("debug", False)
+        self.debug = self.get_parameter("debug").value
 
-        # command center publishes group tracks
-        self.publisher_tracks = self.create_publisher(ObjectStateArray, "tracks", 10)
-
-    def discovery_callback(self):
-        """Set up a subscriber to this agent's track information"""
-        node_names_and_namespaces = self.get_node_names_and_namespaces()
-        for name, namespace in node_names_and_namespaces:
-            if (
-                ("ego" in namespace)
-                or ("agent" in namespace)
-                and ("command_center" not in namespace)
-            ):
-                if namespace not in self.agent_subscribers:
-                    self.agent_subscribers[namespace] = self.create_subscription(
-                        ObjectStateArray,
-                        f"{namespace}/tracks",
-                        self.tracks_callback,
-                        10,
-                    )
-
-    def tracks_callback(self, msg):
-        self.get_logger().info(
-            f"Received {len(msg.states)} tracks from agent {msg.header.frame_id}"
+        # subscribe to collated tracks from the broker
+        self.subscriber_tracks = self.create_subscription(
+            BoxTrackArrayWithSenderArray, "collated", self.pipeline_callback, 10
         )
 
+        # publish fused results
+        self.pubsliher_fused = self.create_publisher(ObjectStateArray, "tracks", 10)
+        self.i_frame = 0
 
-class CommandCenter(BaseAgent):
-    pass
+    def pipeline_callback(self, msg: BoxTrackArrayWithSenderArray) -> ObjectStateArray:
+        obj_tracks = {}
+        for track_array in msg.track_arrays:
+            tracks = TrackBridge.tracks_to_avstack(track_array)
+            obj_tracks[track_array.sender_id] = tracks
 
-    # def tracks_on_timer(self)
+        # run the cc pipeline
+        timestamp = Bridge.rostime_to_time(msg.track_arrays[0].header.stamp)
+        frame_id = msg.track_arrays[0].header.frame_id
+        group_tracks = self.pipeline(
+            tracks_in=obj_tracks,
+            platform=None,
+            frame=self.i_frame,
+            timestamp=timestamp,
+        )
+        self.i_frame += 1
 
-    #     group_tracks = self.pipeline(
-    #         tracks_in =
-    #     )
-    #     msg_track = self.track_bridge.avstack_to_tracks(
-    #         group_tracks, tf_buffer=self.tf_buffer
-    #     )
-    #     self.publisher_tracks.publish(msg_track)
+        # convert group tracks to output messages
+        header = Header(stamp=Bridge.time_to_rostime(timestamp), frame_id=frame_id)
+        states_msg = TrackBridge.avstack_to_tracks(
+            [g_track.state for g_track in group_tracks],
+            header=header,
+            default_type=ObjectStateArray,
+        )
+        if self.debug:
+            self.get_logger().info(
+                "Maintaining {} group tracks".format(len(states_msg.states))
+            )
 
 
 def main(args=None):

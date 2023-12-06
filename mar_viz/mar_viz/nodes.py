@@ -1,35 +1,31 @@
 import rclpy
-from avstack_bridge.objects import ObjectStateBridge
-from avstack_msgs.msg import ObjectStateArray,ObjectState
-from visualization_msgs.msg import Marker,MarkerArray
-from geometry_msgs.msg import Point, Pose, Quaternion, Vector3
-from vision_msgs.msg import BoundingBox3DArray,BoundingBox3D
-from std_msgs.msg import Header,ColorRGBA
-from avstack_msgs.msg import ObjectStateArray
+from avstack_msgs.msg import BoxTrack, BoxTrackArray, ObjectState, ObjectStateArray
+from geometry_msgs.msg import Twist
 from rclpy.node import Node
+from std_msgs.msg import ColorRGBA, Header
+from vision_msgs.msg import BoundingBox3D, BoundingBox3DArray
+from visualization_msgs.msg import Marker, MarkerArray
 
 
 class AvstackBridgedVisualizer(Node):
-    """Visualization Node that converts AvstackBridge messages 
-    and topics into MarkerArray messages that can easily be 
+    """Visualization Node that converts AvstackBridge messages
+    and topics into MarkerArray messages that can easily be
     visualized in rviz2. The node automatically detects new agent
     namespaces with either "ego" or "agent" in the namespace and
-    also publishes ground truth detections from the 
+    also publishes ground truth detections from the
     "object_truth" topic as a MarkerArray. Additional logging
     can be enabled by setting the "-debug" parameter to true.
     """
+
     def __init__(self):
-        """Initialize a new visualizer node
-        """
+        """Initialize a new visualizer node"""
         super().__init__("visualizer")
 
-        #set to True for more detailed logging for debugging
-        self.declare_parameter("debug",False)
-        self.debug = self.get_parameter("debug")
-        
-        self.object_bridge = ObjectStateBridge()
+        # set to True for more detailed logging for debugging
+        self.declare_parameter("debug", False)
+        self.debug = self.get_parameter("debug").value
 
-        #initialize different colors
+        # initialize different colors
         self.colors = {}
         self._init_colors()
 
@@ -38,37 +34,32 @@ class AvstackBridgedVisualizer(Node):
         self.gt_publisher = None
         self.gt_init_pub_sub()
 
-        #agent namespaces
+        # agent namespaces
         self._agent_namespaces = []
 
-        #pub/sub for agent detections
+        # pub/sub for agent detections
         self._detections_pubs = {}
         self._detections_subs = {}
 
-        #pub/sub for agent tracks
+        # pub/sub for agent tracks
         self._tracks_pubs = {}
         self._tracks_subs = {}
 
-        #start new agent discovery
+        # start new agent discovery
         self.new_agent_discovery_timer = None
         self.new_agent_discovery_init_timer()
 
-        return
-
-    '''
+    """
     ##########################################################
     Ground Truth Initializations, Functions, and Callbacks
     ##########################################################
-    '''
+    """
+
     def gt_init_pub_sub(self):
-        """Initialize a publisher and subscriber for ground truth positions
-        """
+        """Initialize a publisher and subscriber for ground truth positions"""
         # subscribe to ground truth object information
         self.gt_subscription = self.create_subscription(
-            ObjectStateArray,
-            "object_truth",
-            self._gt_sub_callback,
-            10
+            ObjectStateArray, "object_truth", self._gt_sub_callback, 10
         )
 
         # publish the visualized markers
@@ -76,61 +67,56 @@ class AvstackBridgedVisualizer(Node):
             MarkerArray, "object_truth/markers", 10
         )
 
-    def _gt_sub_callback(self, msg:ObjectStateArray):
+    def _gt_sub_callback(self, msg: ObjectStateArray):
         """Callback function for the ground truth position subscriber.
 
         Args:
             msg (ObjectStateArray): Array of ObjectState objects containing ground truth positions
         """
         points = self._objectStateArray_to_markerArray(
-            msg = msg,
-            namespace="object_truth",
-            color = self.colors["blue"]
+            msg=msg, namespace="object_truth", color=self.colors["blue"]
         )
         self.gt_publisher.publish(points)
         # self.get_logger().info("Received {} objects".format(len(msg.states)))
 
-    '''
+    """
     ##########################################################
     Finding new agents
     ##########################################################
-    '''
+    """
+
     def new_agent_discovery_init_timer(self):
-        """Initializes a timer to check for new agents every 1.0 second
-        """
+        """Initializes a timer to check for new agents every 1.0 second"""
         self.new_agent_discovery_timer = self.create_timer(
-            timer_period_sec = 1.0,
-            callback = self.new_agent_discovery_callback
+            timer_period_sec=1.0, callback=self.new_agent_discovery_callback
         )
 
-    
     def new_agent_discovery_callback(self):
         """Callback function to check for new agents.
         When a new agent is detected, publisher/subscribers
         for the agent's tracking/detections are initialized
         so that they can be visualized
         """
-        #get the node names and namespaces
+        # get the node names and namespaces
         node_names_and_namespaces = self.get_node_names_and_namespaces()
 
-        #check for new agents
-        for name,namespace in node_names_and_namespaces:
+        # check for new agents
+        for name, namespace in node_names_and_namespaces:
             if (
                 ("ego" in namespace)
                 or ("agent" in namespace)
                 and ("command_center" not in namespace)
             ):
                 if namespace not in self._agent_namespaces:
-                    self._add_agent(
-                        agent_namespace=namespace
-                    )
+                    self._add_agent(agent_namespace=namespace)
 
-    '''
+    """
     ##########################################################
     Initialize new agent
     ##########################################################
-    '''
-    def _add_agent(self,agent_namespace:str):
+    """
+
+    def _add_agent(self, agent_namespace: str):
         """Add a publisher/subsciber for an new agent's
         detections and tracking
 
@@ -140,27 +126,30 @@ class AvstackBridgedVisualizer(Node):
 
         if agent_namespace not in self._agent_namespaces:
 
-            #add namespace to existing list of namespaces
+            # add namespace to existing list of namespaces
             self._agent_namespaces.append(agent_namespace)
             self.get_logger().info("Visualizer added {}".format(agent_namespace))
 
-            #create a publisher/subscriber for the agent's detections
+            # create a publisher/subscriber for the agent's detections
             self._detections_init_pub_sub(agent_namespace)
 
-            #create a publisher/subscriber for the agent's tracks
+            # create a publisher/subscriber for the agent's tracks
             self._tracks_init_pub_sub(agent_namespace)
 
-
         else:
-            self.get_logger().info("Visualizer attempted to add {}, but it already existed".format(agent_namespace))
-    
-    
-    '''
+            self.get_logger().info(
+                "Visualizer attempted to add {}, but it already existed".format(
+                    agent_namespace
+                )
+            )
+
+    """
     ##########################################################
     Detections Initializations, Functions, and Callbacks
     ##########################################################
-    '''
-    def _detections_init_pub_sub(self, agent_namespace:str):
+    """
+
+    def _detections_init_pub_sub(self, agent_namespace: str):
         """Initialize the publisher and subscriber for an
         agent's detections
 
@@ -168,47 +157,46 @@ class AvstackBridgedVisualizer(Node):
             agent_namespace (str): the agent's namespace
                 (ex: "ego" or "agent1")
         """
-        #initialize the subscriber
+        # initialize the subscriber
         self._detections_subs[agent_namespace] = self.create_subscription(
             BoundingBox3DArray,
             "{}/detections".format(agent_namespace),
-            lambda msg: self._detections_sub_callback(msg,agent_namespace),
-            10
+            lambda msg: self._detections_sub_callback(msg, agent_namespace),
+            10,
         )
 
         self._detections_pubs[agent_namespace] = self.create_publisher(
-            MarkerArray,
-            "{}/markers/detections".format(agent_namespace),
-            10
+            MarkerArray, "{}/markers/detections".format(agent_namespace), 10
         )
 
-    def _detections_sub_callback(self,msg:BoundingBox3DArray,agent_namespace:str):
+    def _detections_sub_callback(self, msg: BoundingBox3DArray, agent_namespace: str):
         """Callback function for a given agent's detections
         subscriber.
 
         Args:
             msg (BoundingBox3DArray): array of bounding
-                BoundingBox3D object's representing the 
+                BoundingBox3D object's representing the
                 agent's detections
             agent_namespace (str): he agent's namespace
                 (ex: "ego" or "agent1")
         """
 
         markers = self._boundingBox3DArray_to_markerArray(
-            msg=msg,
-            namespace=agent_namespace,
-            color=self.colors["red"])
+            msg=msg, namespace=agent_namespace, color=self.colors["red"]
+        )
         self._detections_pubs[agent_namespace].publish(markers)
         if self.debug:
-            self.get_logger().info("Received {} detections from {}".format(len(msg.boxes),agent_namespace))
+            self.get_logger().info(
+                "Received {} detections from {}".format(len(msg.boxes), agent_namespace)
+            )
 
-    '''
+    """
     ##########################################################
     Track Initializations, Functions, and Callbacks
     ##########################################################
-    '''
+    """
 
-    def _tracks_init_pub_sub(self, agent_namespace:str):
+    def _tracks_init_pub_sub(self, agent_namespace: str):
         """Initialize the publisher and subscriber for an
         agent's tracks
 
@@ -216,47 +204,47 @@ class AvstackBridgedVisualizer(Node):
             agent_namespace (str): the agent's namespace
                 (ex: "ego" or "agent1")
         """
-        #initialize the subscriber
+        # initialize the subscriber
         self._tracks_subs[agent_namespace] = self.create_subscription(
-            ObjectStateArray,
+            BoxTrackArray,
             "{}/tracks".format(agent_namespace),
-            lambda msg: self._tracks_sub_callback(msg,agent_namespace),
-            10
+            lambda msg: self._tracks_sub_callback(msg, agent_namespace),
+            10,
         )
 
         self._tracks_pubs[agent_namespace] = self.create_publisher(
-            MarkerArray,
-            "{}/markers/tracks".format(agent_namespace),
-            10
+            MarkerArray, "{}/markers/tracks".format(agent_namespace), 10
         )
 
-    def _tracks_sub_callback(self,msg:ObjectStateArray,agent_namespace:str):
+    def _tracks_sub_callback(self, msg: BoxTrackArray, agent_namespace: str):
         """Callback function for a given agent's tracks
         subscriber.
 
         Args:
-            msg (ObjectStateArray): array of 
-                ObjectState objects representing the 
+            msg (ObjectStateArray): array of
+                ObjectState objects representing the
                 agent's detections
             agent_namespace (str): he agent's namespace
                 (ex: "ego" or "agent1")
         """
-        markers = self._objectStateArray_to_markerArray(
-            msg=msg,
-            namespace=agent_namespace,
-            color=self.colors["green"])
+        markers = self._boxTrackArray_to_markerArray(
+            msg=msg, namespace=agent_namespace, color=self.colors["green"]
+        )
         self._tracks_pubs[agent_namespace].publish(markers)
         if self.debug:
-            self.get_logger().info("Received {} tracks from {}".format(len(msg.states),agent_namespace))
+            self.get_logger().info(
+                "Received {} tracks from {}".format(len(msg.states), agent_namespace)
+            )
 
-    
-    '''
+    """
     ##########################################################
     Helper Fn's to convert to visualization messages
     ##########################################################
-    '''
+    """
 
-    def _boundingBox3DArray_to_markerArray(self,msg:BoundingBox3DArray,namespace:str,color:ColorRGBA) -> MarkerArray:
+    def _boundingBox3DArray_to_markerArray(
+        self, msg: BoundingBox3DArray, namespace: str, color: ColorRGBA
+    ) -> MarkerArray:
         """Helper Function to convert from a BoundingBox3DArray
         to a MarkerArray ROS2 message
 
@@ -283,20 +271,22 @@ class AvstackBridgedVisualizer(Node):
                 self._boundingBox3D_to_marker(
                     bounding_box_3D=msg.boxes[i],
                     header=header,
-                    id = i,
+                    id=i,
                     namespace=namespace,
-                    color=color
+                    color=color,
                 )
             )
 
         return detections
-    
-    def _boundingBox3D_to_marker(self,
-                            bounding_box_3D:BoundingBox3D,
-                            header:Header,
-                            id:int,
-                            namespace:str,
-                            color:ColorRGBA) -> Marker:
+
+    def _boundingBox3D_to_marker(
+        self,
+        bounding_box_3D: BoundingBox3D,
+        header: Header,
+        id: int,
+        namespace: str,
+        color: ColorRGBA,
+    ) -> Marker:
         """Helper Function to convert from a BoundingBox3D
         to a Marker ROS2 message
 
@@ -304,7 +294,7 @@ class AvstackBridgedVisualizer(Node):
             bounding_box_3D (BoundingBox3D): the input
                 BoundingBox3D message
             header: the header to use for each Marker object
-                (use the header from the BoundingBox3DArray 
+                (use the header from the BoundingBox3DArray
                 object)
             id (int): a unique integer id for the given marker
             namespace (str): the namespace of the agent
@@ -335,7 +325,6 @@ class AvstackBridgedVisualizer(Node):
 
         # define the pose and point
         marker.pose.orientation = bounding_box_3D.center.orientation
-        marker.pose.orientation.w = -1.0 * marker.pose.orientation.w
         marker.pose.position = bounding_box_3D.center.position
 
         # define the color
@@ -343,7 +332,9 @@ class AvstackBridgedVisualizer(Node):
 
         return marker
 
-    def _objectStateArray_to_markerArray(self,msg:ObjectStateArray,namespace:str,color:ColorRGBA) -> MarkerArray:
+    def _objectStateArray_to_markerArray(
+        self, msg: ObjectStateArray, namespace: str, color: ColorRGBA
+    ) -> MarkerArray:
         """Helper Function to convert from a BoundingBox3DArray
         to a MarkerArray ROS2 message
 
@@ -358,7 +349,7 @@ class AvstackBridgedVisualizer(Node):
         Returns:
             MarkerArray: Array of ROS2 Marker objects
         """
-        #define a new marker array
+        # define a new marker array
         points = MarkerArray()
         points.markers = []
 
@@ -372,21 +363,41 @@ class AvstackBridgedVisualizer(Node):
                 self._objectState_to_marker(
                     object_state=msg.states[i],
                     header=header,
-                    id = i,
+                    id=i,
                     namespace=namespace,
-                    color=color
+                    color=color,
                 )
             )
-        
-        return points
-   
 
-    def _objectState_to_marker(self,
-                            object_state:ObjectState,
-                            header:Header,
-                            id:int,
-                            namespace:str,
-                            color:ColorRGBA) -> Marker:
+        return points
+
+    def _boxTrackArray_to_markerArray(
+        self,
+        msg: BoxTrackArray,
+        **kwargs,
+    ) -> MarkerArray:
+        """Wrapper between box track and object state array"""
+        states = [self._boxTrack_to_objectState(track) for track in msg.tracks]
+        objs_msg = ObjectStateArray(header=msg.header, states=states)
+        return self._objectStateArray_to_markerArray(objs_msg, **kwargs)
+
+    @staticmethod
+    def _boxTrack_to_objectState(msg: BoxTrack) -> ObjectState:
+        return ObjectState(
+            obj_type=msg.obj_type,
+            pose=msg.box.center,
+            twist=Twist(linear=msg.velocity),
+            box=msg.box,
+        )
+
+    def _objectState_to_marker(
+        self,
+        object_state: ObjectState,
+        header: Header,
+        id: int,
+        namespace: str,
+        color: ColorRGBA,
+    ) -> Marker:
         """Helper Function to convert from a ObjectState
         object to a Marker ROS2 message
 
@@ -394,7 +405,7 @@ class AvstackBridgedVisualizer(Node):
             object_state (ObjectState): the input
                 ObjectState message
             header: the header to use for each Marker object
-                (use the header from the ObjectStateArray 
+                (use the header from the ObjectStateArray
                 object)
             id (int): a unique integer id for the given marker
             namespace (str): the namespace of the agent
@@ -425,7 +436,6 @@ class AvstackBridgedVisualizer(Node):
 
         # define the pose and point
         marker.pose.orientation = object_state.box.center.orientation
-        marker.pose.orientation.w = -1.0 * marker.pose.orientation.w
         marker.pose.position = object_state.box.center.position
 
         # define the color
@@ -433,25 +443,25 @@ class AvstackBridgedVisualizer(Node):
 
         return marker
 
-    '''
+    """
     ##########################################################
     Defining Custom Colors for Visualization
     ##########################################################
-    '''
+    """
+
     def _init_colors(self):
         """initializes a dictionary of common colors as a
         dictionary of ColorRGBA objects (key is color's name)
         NOTE: supported colors - "red","green","blue","yellow","purple"
         """
 
-        #primary colors
-        self.colors["red"] = ColorRGBA(a=1.0,r=1.0,g=0.0,b=0.0)
-        self.colors["green"] = ColorRGBA(a=1.0,r=0.0,g=1.0,b=0.0)
-        self.colors["blue"] = ColorRGBA(a=1.0,r=0.0,g=0.0,b=1.0)
+        # primary colors
+        self.colors["red"] = ColorRGBA(a=1.0, r=1.0, g=0.0, b=0.0)
+        self.colors["green"] = ColorRGBA(a=1.0, r=0.0, g=1.0, b=0.0)
+        self.colors["blue"] = ColorRGBA(a=1.0, r=0.0, g=0.0, b=1.0)
 
-        self.colors["yellow"] = ColorRGBA(a=1.0,r=1.0,g=1.0,b=0.0)
-        self.colors["purple"] = ColorRGBA(a=1.0,r=1.0,g=0.0,b=1.0)
-
+        self.colors["yellow"] = ColorRGBA(a=1.0, r=1.0, g=1.0, b=0.0)
+        self.colors["purple"] = ColorRGBA(a=1.0, r=1.0, g=0.0, b=1.0)
 
 
 def main(args=None):
