@@ -6,7 +6,8 @@ information from all of the agents.
 
 import rclpy
 from avstack_msgs.msg import ObjectStateArray, ObjectStateArrayWithSenderArray
-
+from avstack_bridge.base import Bridge
+from avstack_bridge.tracks import TrackBridge
 from .base import BaseAgent
 
 
@@ -21,12 +22,24 @@ class CommandCenter(BaseAgent):
 
         # publish fused results
         self.pubsliher_fused = self.create_publisher(ObjectStateArray, "fused", 10)
+        self.i_frame = 0
 
     def pipeline_callback(self, msg: ObjectStateArrayWithSenderArray):
-        # obj_states = None
-        # fused_out = self.pipeline()
-        # msg_fused = self.
-        self.get_logger().info("Received states from {} agents".format(len(msg.state_arrays)))
+        obj_tracks = {}
+        for state_array in msg.state_arrays:
+            tracks = TrackBridge.tracks_to_avstack(state_array)
+            obj_tracks[state_array.sender_id] = tracks
+
+        timestamp = Bridge.rostime_to_time(msg.state_arrays[0].header.stamp)
+        fused_out = self.pipeline(
+            tracks_in=obj_tracks,
+            platform=None,
+            frame=self.i_frame,
+            timestamp=timestamp,
+        )
+        self.i_frame += 1
+        msg_fused = []
+        self.get_logger().info("Maintaining {} fused tracks".format(len(fused_out)))
 
 
 def main(args=None):

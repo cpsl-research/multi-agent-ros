@@ -63,8 +63,6 @@ class CommandCenterPipeline:
         *args: Any,
         **kwds: Any
     ) -> list:
-        for tracks in tracks_in.values():
-            tracks.apply("change_reference", reference=platform, inplace=True)
         clusters = self.clustering(objects=tracks_in, frame=frame, timestamp=timestamp)
         group_tracks = self.group_tracking(
             clusters=clusters, platform=platform, frame=frame, timestamp=timestamp
