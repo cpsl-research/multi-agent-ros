@@ -1,3 +1,7 @@
+import os
+
+from ament_index_python.packages import get_package_share_directory
+
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
@@ -11,11 +15,26 @@ def generate_launch_description():
         default_value='command_center.py'
     )
 
+    cc_config = os.path.join(
+        get_package_share_directory("mar_bringup"),
+        "config",
+        "command_center",
+        "cc_standard.yml",
+    )
+
+    cc_broker_config = os.path.join(
+        get_package_share_directory("mar_bringup"),
+        "config",
+        "command_center",
+        "cc_broker_standard.yml",
+    )
+
     cc_broker_node = Node(
         package="mar_agents",
         executable="command_center_broker",
         namespace="command_center",
-        name="command_center",
+        name="command_center_broker",
+        parameters=[cc_broker_config],
         arguments=['--ros-args', '--log-level', 'INFO'],
     )
 
@@ -24,6 +43,7 @@ def generate_launch_description():
         executable="command_center",
         namespace="command_center",
         name="command_center",
+        parameters=[cc_config],
         arguments=['--ros-args', '--log-level', 'INFO'],
     )
 

@@ -7,7 +7,8 @@ information from all of the agents.
 import rclpy
 from avstack_bridge.base import Bridge
 from avstack_bridge.tracks import TrackBridge
-from avstack_msgs.msg import ObjectStateArray, ObjectStateArrayWithSenderArray
+from avstack_msgs.msg import BoxTrackArrayWithSenderArray, ObjectStateArray
+from std_msgs.msg import Header
 
 from .base import BaseAgent
 
@@ -16,31 +17,47 @@ class CommandCenter(BaseAgent):
     def __init__(self):
         super().__init__(name="command_center", default_pipeline="command_center.py")
 
+        # set to True for more detailed logging for debugging
+        self.declare_parameter("debug", False)
+        self.debug = self.get_parameter("debug").value
+
         # subscribe to collated tracks from the broker
         self.subscriber_tracks = self.create_subscription(
-            ObjectStateArrayWithSenderArray, "collated", self.pipeline_callback, 10
+            BoxTrackArrayWithSenderArray, "collated", self.pipeline_callback, 10
         )
 
         # publish fused results
-        self.pubsliher_fused = self.create_publisher(ObjectStateArray, "fused", 10)
+        self.pubsliher_fused = self.create_publisher(ObjectStateArray, "tracks", 10)
         self.i_frame = 0
 
-    def pipeline_callback(self, msg: ObjectStateArrayWithSenderArray):
+    def pipeline_callback(self, msg: BoxTrackArrayWithSenderArray) -> ObjectStateArray:
         obj_tracks = {}
-        for state_array in msg.state_arrays:
-            tracks = TrackBridge.tracks_to_avstack(state_array)
-            obj_tracks[state_array.sender_id] = tracks
+        for track_array in msg.track_arrays:
+            tracks = TrackBridge.tracks_to_avstack(track_array)
+            obj_tracks[track_array.sender_id] = tracks
 
-        timestamp = Bridge.rostime_to_time(msg.state_arrays[0].header.stamp)
-        fused_out = self.pipeline(
+        # run the cc pipeline
+        timestamp = Bridge.rostime_to_time(msg.track_arrays[0].header.stamp)
+        frame_id = msg.track_arrays[0].header.frame_id
+        group_tracks = self.pipeline(
             tracks_in=obj_tracks,
             platform=None,
             frame=self.i_frame,
             timestamp=timestamp,
         )
         self.i_frame += 1
-        msg_fused = []
-        self.get_logger().info("Maintaining {} fused tracks".format(len(fused_out)))
+
+        # convert group tracks to output messages
+        header = Header(stamp=Bridge.time_to_rostime(timestamp), frame_id=frame_id)
+        states_msg = TrackBridge.avstack_to_tracks(
+            [g_track.state for g_track in group_tracks],
+            header=header,
+            default_type=ObjectStateArray,
+        )
+        if self.debug:
+            self.get_logger().info(
+                "Maintaining {} group tracks".format(len(states_msg.states))
+            )
 
 
 def main(args=None):

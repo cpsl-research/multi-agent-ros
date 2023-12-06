@@ -3,7 +3,7 @@ from functools import partial
 import rclpy
 from avstack.datastructs import DataManager
 from avstack_bridge.base import Bridge
-from avstack_bridge.transform import do_transform_object_state
+from avstack_bridge.transform import do_transform_box_track
 from avstack_msgs.msg import (
     BoxTrackArray,
     BoxTrackArrayWithSender,
@@ -23,6 +23,11 @@ class CommandCenterBroker(Node):
 
     def __init__(self):
         super().__init__("command_center_broker")
+
+        # set to True for more detailed logging for debugging
+        self.declare_parameter("debug", False)
+        self.debug = self.get_parameter("debug").value
+
         self._tf_buffer = Buffer()
         self._tf_listener = TransformListener(self._tf_buffer, self)
 
@@ -86,30 +91,38 @@ class CommandCenterBroker(Node):
             else:  # all must have data if we made it here
                 # take the oldest data from all and check the synchronicity
                 data_arrays = self.data_manager.pop(s_ID=None, with_priority=False)
-                state_arrays = []
+                track_arrays = []
                 for ID, data in data_arrays.items():
                     # Suspends callback until transform becomes available
                     to_frame = data.header.frame_id
                     from_frame = "world"
                     when = data.header.stamp
+                    if self.debug:
+                        self.get_logger().info(
+                            "Awaiting transform:\n  to: {}\n  from: {}\n  when: {}".format(
+                                to_frame, from_frame, when
+                            )
+                        )
                     tf = await self._tf_buffer.lookup_transform_async(
                         to_frame, from_frame, when
                     )
+                    if self.debug:
+                        self.get_logger().info("Found transform!")
 
                     # once we have transform, apply it
-                    new_states = [
-                        do_transform_object_state(state, tf) for state in data.states
+                    new_tracks = [
+                        do_transform_box_track(track, tf) for track in data.tracks
                     ]
                     new_header = Header(frame_id="world", stamp=when)
 
-                    # save transformed state array
-                    state_arrays.append(
+                    # save transformed track array
+                    track_arrays.append(
                         BoxTrackArrayWithSender(
-                            header=new_header, states=new_states, sender_id=ID
+                            header=new_header, tracks=new_tracks, sender_id=ID
                         )
                     )
-                obj_arrarr_msg = BoxTrackArrayWithSenderArray(state_arrays=state_arrays)
-                self.publisher_collated.publish(obj_arrarr_msg)
+                trk_arrarr_msg = BoxTrackArrayWithSenderArray(track_arrays=track_arrays)
+                self.publisher_collated.publish(trk_arrarr_msg)
 
 
 def main(args=None):
