@@ -5,9 +5,10 @@ information from all of the agents.
 """
 
 import rclpy
-from avstack_msgs.msg import ObjectStateArray, ObjectStateArrayWithSenderArray
 from avstack_bridge.base import Bridge
 from avstack_bridge.tracks import TrackBridge
+from avstack_msgs.msg import ObjectStateArray, ObjectStateArrayWithSenderArray
+
 from .base import BaseAgent
 
 

@@ -5,9 +5,9 @@ from avstack.datastructs import DataManager
 from avstack_bridge.base import Bridge
 from avstack_bridge.transform import do_transform_object_state
 from avstack_msgs.msg import (
-    ObjectStateArray,
-    ObjectStateArrayWithSender,
-    ObjectStateArrayWithSenderArray,
+    BoxTrackArray,
+    BoxTrackArrayWithSender,
+    BoxTrackArrayWithSenderArray,
 )
 from rclpy.node import Node
 from std_msgs.msg import Header
@@ -45,7 +45,7 @@ class CommandCenterBroker(Node):
             publish_timer_period, self.check_datamanager_callback
         )
         self.publisher_collated = self.create_publisher(
-            ObjectStateArrayWithSenderArray, "collated", 10
+            BoxTrackArrayWithSenderArray, "collated", 10
         )
 
     def discovery_callback(self):
@@ -59,7 +59,7 @@ class CommandCenterBroker(Node):
             ):
                 if namespace not in self.agent_subscribers:
                     self.agent_subscribers[namespace] = self.create_subscription(
-                        ObjectStateArray,
+                        BoxTrackArray,
                         f"{namespace}/tracks",
                         partial(self.tracks_callback, agent=namespace),
                         10,
@@ -104,13 +104,11 @@ class CommandCenterBroker(Node):
 
                     # save transformed state array
                     state_arrays.append(
-                        ObjectStateArrayWithSender(
+                        BoxTrackArrayWithSender(
                             header=new_header, states=new_states, sender_id=ID
                         )
                     )
-                obj_arrarr_msg = ObjectStateArrayWithSenderArray(
-                    state_arrays=state_arrays
-                )
+                obj_arrarr_msg = BoxTrackArrayWithSenderArray(state_arrays=state_arrays)
                 self.publisher_collated.publish(obj_arrarr_msg)
 
 

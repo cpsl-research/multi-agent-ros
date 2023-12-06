@@ -4,7 +4,7 @@ situational awareness to impact the route.
 """
 
 import rclpy
-from avstack_msgs.msg import ObjectStateArray, ObjectStateStamped
+from avstack_msgs.msg import BoxTrackArray
 from vision_msgs.msg import BoundingBox3DArray
 
 from .base import BaseAgent
@@ -23,7 +23,7 @@ class PassiveAgent(BaseAgent):
         )
 
         # passive agents publish track information
-        self.publisher_tracks = self.create_publisher(ObjectStateArray, "tracks", 10)
+        self.publisher_tracks = self.create_publisher(BoxTrackArray, "tracks", 10)
 
     def dets_callback(self, msg):
         dets = self.dets_bridge.detections_to_avstack(msg)
@@ -36,6 +36,7 @@ class PassiveAgent(BaseAgent):
         msg_track = self.track_bridge.avstack_to_tracks(
             tracks_out[0],
             header=msg.header,
+            default_type=BoxTrackArray,
         )
         self.publisher_tracks.publish(msg_track)
 

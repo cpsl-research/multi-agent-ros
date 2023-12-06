@@ -1,5 +1,6 @@
 import rclpy
-from avstack_msgs.msg import ObjectState, ObjectStateArray
+from avstack_msgs.msg import BoxTrack, BoxTrackArray, ObjectState, ObjectStateArray
+from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from std_msgs.msg import ColorRGBA, Header
 from vision_msgs.msg import BoundingBox3D, BoundingBox3DArray
@@ -205,7 +206,7 @@ class AvstackBridgedVisualizer(Node):
         """
         # initialize the subscriber
         self._tracks_subs[agent_namespace] = self.create_subscription(
-            ObjectStateArray,
+            BoxTrackArray,
             "{}/tracks".format(agent_namespace),
             lambda msg: self._tracks_sub_callback(msg, agent_namespace),
             10,
@@ -215,7 +216,7 @@ class AvstackBridgedVisualizer(Node):
             MarkerArray, "{}/markers/tracks".format(agent_namespace), 10
         )
 
-    def _tracks_sub_callback(self, msg: ObjectStateArray, agent_namespace: str):
+    def _tracks_sub_callback(self, msg: BoxTrackArray, agent_namespace: str):
         """Callback function for a given agent's tracks
         subscriber.
 
@@ -226,7 +227,7 @@ class AvstackBridgedVisualizer(Node):
             agent_namespace (str): he agent's namespace
                 (ex: "ego" or "agent1")
         """
-        markers = self._objectStateArray_to_markerArray(
+        markers = self._boxTrackArray_to_markerArray(
             msg=msg, namespace=agent_namespace, color=self.colors["green"]
         )
         self._tracks_pubs[agent_namespace].publish(markers)
@@ -369,6 +370,25 @@ class AvstackBridgedVisualizer(Node):
             )
 
         return points
+
+    def _boxTrackArray_to_markerArray(
+        self,
+        msg: BoxTrackArray,
+        **kwargs,
+    ) -> MarkerArray:
+        """Wrapper between box track and object state array"""
+        states = [self._boxTrack_to_objectState(track) for track in msg.tracks]
+        objs_msg = ObjectStateArray(header=msg.header, states=states)
+        return self._objectStateArray_to_markerArray(objs_msg, **kwargs)
+
+    @staticmethod
+    def _boxTrack_to_objectState(msg: BoxTrack) -> ObjectState:
+        return ObjectState(
+            obj_type=msg.obj_type,
+            pose=msg.box.center,
+            twist=Twist(linear=msg.velocity),
+            box=msg.box,
+        )
 
     def _objectState_to_marker(
         self,
