@@ -263,7 +263,7 @@ class AvstackBridgedVisualizer(Node):
 
     def _agent_pose_init_pub(self, agent_namespace: str):
         """Initialize the publisher and subscriber for an
-        agent's detections
+        agent's pose
 
         Args:
             agent_namespace (str): the agent's namespace
@@ -281,8 +281,9 @@ class AvstackBridgedVisualizer(Node):
         namespace: str,
         color: ColorRGBA,
     ) -> Marker:
-        """Helper Function to convert from a ObjectState
-        object to a Marker ROS2 message
+        """Helper Function to generate a marker for an agent's
+        pose
+        
 
         Args:
             header: the header to use for each Marker object
