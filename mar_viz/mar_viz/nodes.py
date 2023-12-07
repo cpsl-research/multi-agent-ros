@@ -1,6 +1,6 @@
 import rclpy
 from avstack_msgs.msg import BoxTrack, BoxTrackArray, ObjectState, ObjectStateArray
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Vector3
 from rclpy.node import Node
 from std_msgs.msg import ColorRGBA, Header
 from vision_msgs.msg import BoundingBox3D, BoundingBox3DArray
@@ -44,6 +44,9 @@ class AvstackBridgedVisualizer(Node):
         # pub/sub for agent tracks
         self._tracks_pubs = {}
         self._tracks_subs = {}
+
+        # pub for agent positions
+        self._agent_pose_pubs = {}
 
         # start new agent discovery
         self.new_agent_discovery_timer = None
@@ -136,6 +139,9 @@ class AvstackBridgedVisualizer(Node):
             # create a publisher/subscriber for the agent's tracks
             self._tracks_init_pub_sub(agent_namespace)
 
+            #create a publisher/subscriber for the agent's pose
+            self._agent_pose_init_pub(agent_namespace)
+
         else:
             self.get_logger().info(
                 "Visualizer attempted to add {}, but it already existed".format(
@@ -224,17 +230,108 @@ class AvstackBridgedVisualizer(Node):
             msg (ObjectStateArray): array of
                 ObjectState objects representing the
                 agent's detections
-            agent_namespace (str): he agent's namespace
+            agent_namespace (str): the agent's namespace
                 (ex: "ego" or "agent1")
         """
-        markers = self._boxTrackArray_to_markerArray(
+
+        #publish the agent's tracks
+        track_markers = self._boxTrackArray_to_markerArray(
             msg=msg, namespace=agent_namespace, color=self.colors["green"]
         )
-        self._tracks_pubs[agent_namespace].publish(markers)
+        self._tracks_pubs[agent_namespace].publish(track_markers)
         if self.debug:
             self.get_logger().info(
                 "Received {} tracks from {}".format(len(msg.states), agent_namespace)
             )
+        
+        #publish the agent's pose
+        pose_marker = self._agent_pose_generate_marker(
+            header=msg.header,namespace=agent_namespace,color=self.colors["yellow"]
+        )
+
+        self._agent_pose_pubs[agent_namespace].publish(pose_marker)
+        if self.debug:
+            self.get_logger().info(
+                "Published pose for {}".format(agent_namespace)
+            )
+
+    """
+    ##########################################################
+    Agent Pose Initializations and Functions
+    ##########################################################
+    """
+
+    def _agent_pose_init_pub(self, agent_namespace: str):
+        """Initialize the publisher and subscriber for an
+        agent's detections
+
+        Args:
+            agent_namespace (str): the agent's namespace
+                (ex: "ego" or "agent1")
+        """
+        # initialize the publisher
+
+        self._agent_pose_pubs[agent_namespace] = self.create_publisher(
+            Marker, "{}/markers/agent_pose".format(agent_namespace), 10
+        )
+    
+    def _agent_pose_generate_marker(
+        self,
+        header: Header,
+        namespace: str,
+        color: ColorRGBA,
+    ) -> Marker:
+        """Helper Function to convert from a ObjectState
+        object to a Marker ROS2 message
+
+        Args:
+            header: the header to use for each Marker object
+                (use the header from the ObjectStateArray
+                object)
+            id (int): a unique integer id for the given marker
+            namespace (str): the namespace of the agent
+                (ex: "ego" or "agent1")
+            color (ColorRGBA): the desired color of each Marker
+                expressed as a ROS2 ColorRGBA message type
+
+        Returns:
+            Marker: ROS2 Marker object
+        """
+        # define a new marker
+        marker = Marker()
+
+        # initialize the header
+        marker.header.frame_id = header.frame_id
+        marker.header.stamp = header.stamp
+
+        # define the marker attributes
+        marker.ns = namespace
+        marker.id = 0
+        marker.type = Marker.CUBE
+
+        # define the scale
+        marker.scale.x = 4.0
+        marker.scale.y = 2.5
+        marker.scale.z = 2.0
+
+        # set the behavior to ADD for now
+        marker.action = Marker.ADD
+
+        # define the pose and point
+        marker.pose.orientation.x = 0.0
+        marker.pose.orientation.y = 0.0
+        marker.pose.orientation.z = 0.0
+        marker.pose.orientation.w = 1.0
+
+        #position
+        marker.pose.position.x = 0.0
+        marker.pose.position.y = 0.0
+        marker.pose.position.z = 0.0
+
+        # define the color
+        marker.color = color
+
+        return marker
 
     """
     ##########################################################
@@ -271,7 +368,7 @@ class AvstackBridgedVisualizer(Node):
                 self._boundingBox3D_to_marker(
                     bounding_box_3D=msg.boxes[i],
                     header=header,
-                    id=i,
+                    id=i + 1,
                     namespace=namespace,
                     color=color,
                 )
@@ -363,7 +460,7 @@ class AvstackBridgedVisualizer(Node):
                 self._objectState_to_marker(
                     object_state=msg.states[i],
                     header=header,
-                    id=i,
+                    id=i + 1,
                     namespace=namespace,
                     color=color,
                 )
