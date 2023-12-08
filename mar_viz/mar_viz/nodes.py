@@ -5,6 +5,7 @@ from rclpy.node import Node
 from std_msgs.msg import ColorRGBA, Header
 from vision_msgs.msg import BoundingBox3D, BoundingBox3DArray
 from visualization_msgs.msg import Marker, MarkerArray
+from builtin_interfaces.msg import Time
 
 
 class AvstackBridgedVisualizer(Node):
