@@ -12,7 +12,7 @@ def get_adversaries(context):
     If the adversary is coordinated, remap tracks to the adversary
     """
     n_adv = int(context.launch_configurations["n_adversaries"])
-    output_remapping = {i:{} for i in range(n_adv)}
+    output_remapping = {i: {} for i in range(n_adv)}
 
     for i in range(int(context.launch_configurations["n_adversaries"])):
         if bool(context.launch_configurations["attack_is_coordinated"]):
@@ -44,9 +44,10 @@ def get_adversaries(context):
 
 
 def attacked(context):
-    if ("n_adversaries" in context.launch_configurations) and \
-         (int(context.launch_configurations["n_adversaries"]) > 0):
-            return True
+    if ("n_adversaries" in context.launch_configurations) and (
+        int(context.launch_configurations["n_adversaries"]) > 0
+    ):
+        return True
     else:
         return False
 
@@ -61,7 +62,7 @@ def get_infra_agents(context):
     *** ASSUMPTION: "adversary-2" attacks "agent-2" ***
     """
     n_infra = int(context.launch_configurations["n_infrastructure_agents"])
-    output_remapping = {i:{} for i in range(n_infra)}
+    output_remapping = {i: {} for i in range(n_infra)}
 
     if attacked(context):
         if bool(context.launch_configurations["attack_is_coordinated"]):
