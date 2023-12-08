@@ -5,7 +5,6 @@ from rclpy.node import Node
 from std_msgs.msg import ColorRGBA, Header
 from vision_msgs.msg import BoundingBox3D, BoundingBox3DArray
 from visualization_msgs.msg import Marker, MarkerArray
-from builtin_interfaces.msg import Time
 
 
 class AvstackBridgedVisualizer(Node):
@@ -49,7 +48,7 @@ class AvstackBridgedVisualizer(Node):
         # pub for individual agent positions
         self._agent_pose_pubs = {}
 
-        #pub for all agent positions
+        # pub for all agent positions
         self._all_agent_poses_pub = None
         self._all_agent_poses_pub_init()
 
@@ -82,16 +81,16 @@ class AvstackBridgedVisualizer(Node):
         Args:
             msg (ObjectStateArray): Array of ObjectState objects containing ground truth positions
         """
-        #publish all of the ground truth object locations
+        # publish all of the ground truth object locations
         points = self._objectStateArray_to_markerArray(
             msg=msg, namespace="object_truth", color=self.colors["blue"]
         )
         self.gt_publisher.publish(points)
 
-        #publish all current agent positions
+        # publish all current agent positions
         if len(self._agent_namespaces) > 0:
             agent_poses = self._all_agent_poses_generate_markerArray(
-                stamp = msg.header.stamp,color = self.colors["yellow"]
+                stamp=msg.header.stamp, color=self.colors["yellow"]
             )
 
             self._all_agent_poses_pub.publish(agent_poses)
@@ -291,9 +290,7 @@ class AvstackBridgedVisualizer(Node):
         self._agent_pose_pubs[agent_namespace] = self.create_publisher(
             Marker, "{}/markers/agent_pose".format(agent_namespace), 10
         )
-<<<<<<< Updated upstream
-=======
-    
+
     def _all_agent_poses_pub_init(self):
         """Initialize a publisher that publishes a MarkerStateArray object
         of all current agent poses
@@ -344,7 +341,6 @@ class AvstackBridgedVisualizer(Node):
 
         return points
     
->>>>>>> Stashed changes
     def _agent_pose_generate_marker(
         self,
         header: Header,
