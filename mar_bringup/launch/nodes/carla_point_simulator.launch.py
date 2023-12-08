@@ -20,7 +20,7 @@ def generate_launch_description():
                 executable="point_simulator",
                 name="simulator",
                 parameters=[sim_config],
-                arguments=['--ros-args', '--log-level', 'INFO'],
+                arguments=["--ros-args", "--log-level", "INFO"],
             ),
         ]
     )

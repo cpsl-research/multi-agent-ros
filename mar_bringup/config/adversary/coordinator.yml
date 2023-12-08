@@ -1,0 +1,5 @@
+/adversary/adversary_coordinator:
+  ros__parameters:
+    fp_poisson: 10
+    fn_fraction: 0.10
+    dt_init_adv: 5.0
