@@ -1,18 +1,15 @@
 import os
 
 from ament_index_python.packages import get_package_share_directory
-
 from launch import LaunchDescription
-from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
 
 
 def generate_launch_description():
 
     cc_pipeline_launch_arg = DeclareLaunchArgument(
-        'cc_pipeline',
-        default_value='command_center.py'
+        "cc_pipeline", default_value="command_center.py"
     )
 
     cc_config = os.path.join(
@@ -35,7 +32,7 @@ def generate_launch_description():
         namespace="command_center",
         name="command_center_broker",
         parameters=[cc_broker_config],
-        arguments=['--ros-args', '--log-level', 'INFO'],
+        arguments=["--ros-args", "--log-level", "INFO"],
     )
 
     cc_node = Node(
@@ -44,7 +41,7 @@ def generate_launch_description():
         namespace="command_center",
         name="command_center",
         parameters=[cc_config],
-        arguments=['--ros-args', '--log-level', 'INFO'],
+        arguments=["--ros-args", "--log-level", "INFO"],
     )
 
     return LaunchDescription(

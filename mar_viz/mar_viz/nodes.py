@@ -1,6 +1,6 @@
 import rclpy
 from avstack_msgs.msg import BoxTrack, BoxTrackArray, ObjectState, ObjectStateArray
-from geometry_msgs.msg import Twist, Vector3
+from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from std_msgs.msg import ColorRGBA, Header
 from vision_msgs.msg import BoundingBox3D, BoundingBox3DArray
@@ -157,7 +157,7 @@ class AvstackBridgedVisualizer(Node):
             # create a publisher/subscriber for the agent's tracks
             self._tracks_init_pub_sub(agent_namespace)
 
-            #create a publisher/subscriber for the agent's pose
+            # create a publisher/subscriber for the agent's pose
             self._agent_pose_init_pub(agent_namespace)
 
         else:
@@ -252,7 +252,7 @@ class AvstackBridgedVisualizer(Node):
                 (ex: "ego" or "agent1")
         """
 
-        #publish the agent's tracks
+        # publish the agent's tracks
         track_markers = self._boxTrackArray_to_markerArray(
             msg=msg, namespace=agent_namespace, color=self.colors["green"]
         )
@@ -261,17 +261,15 @@ class AvstackBridgedVisualizer(Node):
             self.get_logger().info(
                 "Received {} tracks from {}".format(len(msg.states), agent_namespace)
             )
-        
-        #publish the agent's pose
+
+        # publish the agent's pose
         pose_marker = self._agent_pose_generate_marker(
-            header=msg.header,namespace=agent_namespace,color=self.colors["yellow"]
+            header=msg.header, namespace=agent_namespace, color=self.colors["yellow"]
         )
 
         self._agent_pose_pubs[agent_namespace].publish(pose_marker)
         if self.debug:
-            self.get_logger().info(
-                "Published pose for {}".format(agent_namespace)
-            )
+            self.get_logger().info("Published pose for {}".format(agent_namespace))
 
     """
     ##########################################################
@@ -292,57 +290,6 @@ class AvstackBridgedVisualizer(Node):
         self._agent_pose_pubs[agent_namespace] = self.create_publisher(
             Marker, "{}/markers/agent_pose".format(agent_namespace), 10
         )
-    
-    def _all_agent_poses_pub_init(self):
-        """Initialize a publisher that publishes a MarkerStateArray object
-        of all current agent poses
-        """
-
-        #initialize the publisher
-
-        self._all_agent_poses_pub = self.create_publisher(
-            MarkerArray,"object_truth/agent_poses",10
-        )
-
-        return
-    
-    def _all_agent_poses_generate_markerArray(
-        self,
-        stamp:Time,
-        color: ColorRGBA
-    )->MarkerArray:
-        """Generate a marker array containing Marker objects at the position of
-        each agent
-
-        Args:
-            stamp (Time): current time stamp in ROS2 time
-            color (ColorRGBA): the color of the marker to use
-
-        Returns:
-            MarkerArray: MarkerArray object containing a marker for each agent
-        """
-        # define a new marker array
-        points = MarkerArray()
-        points.markers = []
-
-        for i in range(len(self._agent_namespaces)):
-
-            #initialize a new header object with the correct frame_id
-            header = Header()
-            header.stamp = stamp
-            header.frame_id = self._agent_namespaces[i]
-
-            # for each agent_namespace, generate a marker for the agent's pose
-            points.markers.append(
-                self._agent_pose_generate_marker(
-                    header=header,
-                    namespace=self._agent_namespaces[i],
-                    color=color
-                )
-            )
-
-        return points
-    
     def _agent_pose_generate_marker(
         self,
         header: Header,
@@ -351,7 +298,7 @@ class AvstackBridgedVisualizer(Node):
     ) -> Marker:
         """Helper Function to generate a marker for an agent's
         pose
-        
+
 
         Args:
             header: the header to use for each Marker object
@@ -392,7 +339,7 @@ class AvstackBridgedVisualizer(Node):
         marker.pose.orientation.z = 0.0
         marker.pose.orientation.w = 1.0
 
-        #position
+        # position
         marker.pose.position.x = 0.0
         marker.pose.position.y = 0.0
         marker.pose.position.z = 0.0
