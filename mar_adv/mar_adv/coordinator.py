@@ -16,10 +16,12 @@ class AdversaryCoordinator(Node):
     def __init__(self) -> None:
         super().__init__("adversary_coordinator")
 
-        self.declare_parameter("fp_poisson", 10)
-        self.declare_parameter("fn_fraction", 0.10)
-        self.declare_parameter("dt_init_adv", 5.0)
         self.declare_parameter(name="debug", value=True)
+
+        # parameters for a coordinated attack
+        self.declare_parameter("fp_poisson_coord", 10)
+        self.declare_parameter("fn_fraction_coord", 0.10)
+        self.declare_parameter("dt_init_adv_coord", 5.0)
 
         # get the init time
         self.adv_init_timer = self.create_timer(

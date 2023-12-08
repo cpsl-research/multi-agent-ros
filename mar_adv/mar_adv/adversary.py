@@ -13,10 +13,14 @@ class AdversaryNode(Node):
     def __init__(self):
         super().__init__("adversary")
 
+        self.declare_parameter(name="debug", value=True)
         self.declare_parameter(name="attack_is_coordinated", value=False)
         self.declare_parameter(name="attack_agent_name", value="agent0")
+
+        # parameters for an uncoordinated attack
         self.declare_parameter(name="dt_init_uncoord", value=5.0)
-        self.declare_parameter(name="debug", value=True)
+        self.declare_parameter(name="fp_poisson_uncoord", value=6.0)
+        self.declare_parameter(name="fn_fraction_uncoord", value=0.20)
         self.ready = False
 
         # set up a publisher for the output - type depends if coordinated
@@ -81,7 +85,7 @@ class AdversaryNode(Node):
 
         if self.ready:
             # process inputs
-            pass
+            raise NotImplementedError
         else:
             msg_out = msg
 

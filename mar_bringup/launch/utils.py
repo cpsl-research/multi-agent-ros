@@ -11,7 +11,8 @@ def get_adversaries(context):
     If the adversary is uncoordinated, remap detections to the adversary...
     If the adversary is coordinated, remap tracks to the adversary
     """
-    output_remapping = {}
+    n_adv = int(context.launch_configurations["n_adversaries"])
+    output_remapping = {i:{} for i in range(n_adv)}
 
     for i in range(int(context.launch_configurations["n_adversaries"])):
         if bool(context.launch_configurations["attack_is_coordinated"]):
@@ -38,8 +39,16 @@ def get_adversaries(context):
                 "output_remapping": output_remapping[i],
             }.items(),
         )
-        for i in range(int(context.launch_configurations["n_adversaries"]))
+        for i in range(n_adv)
     ]
+
+
+def attacked(context):
+    if ("n_adversaries" in context.launch_configurations) and \
+         (int(context.launch_configurations["n_adversaries"]) > 0):
+            return True
+    else:
+        return False
 
 
 def get_infra_agents(context):
@@ -51,9 +60,10 @@ def get_infra_agents(context):
 
     *** ASSUMPTION: "adversary-2" attacks "agent-2" ***
     """
-    output_remapping = {}
+    n_infra = int(context.launch_configurations["n_infrastructure_agents"])
+    output_remapping = {i:{} for i in range(n_infra)}
 
-    if bool(context.launch_configurations["attacked"]):
+    if attacked(context):
         if bool(context.launch_configurations["attack_is_coordinated"]):
             for i in range(int(context.launch_configurations["n_adversaries"])):
                 output_remapping[i] = {f"/agent{i}/tracks": f"/adversary{i}/tracks"}
@@ -74,7 +84,7 @@ def get_infra_agents(context):
                 "output_remapping": output_remapping[i],
             }.items(),
         )
-        for i in range(int(context.launch_configurations["n_infrastructure_agents"]))
+        for i in range(n_infra)
     ]
 
 
@@ -89,8 +99,8 @@ def get_simulator(context):
 
     output_remapping = {}
 
-    if bool(context.launch_configuration["attacked"]):
-        if not bool(context.launch_configuration["attack_is_coordinated"]):
+    if attacked(context):
+        if not bool(context.launch_configurations["attack_is_coordinated"]):
             for i in range(int(context.launch_configurations["n_adversaries"])):
                 output_remapping[f"/agent{i}/detections"] = f"/adversary{i}/detections"
 
@@ -106,6 +116,6 @@ def get_simulator(context):
             ),
             launch_arguments={
                 "output_remapping": output_remapping,
-            },
+            }.items(),
         )
     ]

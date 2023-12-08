@@ -9,6 +9,7 @@ from launch.actions import (
     OpaqueFunction,
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))

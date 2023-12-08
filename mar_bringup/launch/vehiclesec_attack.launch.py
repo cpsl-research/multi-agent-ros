@@ -24,14 +24,14 @@ def generate_launch_description():
     n_adversaries_launch_arg = DeclareLaunchArgument("n_adversaries")
     is_coordinated_launch_arg = DeclareLaunchArgument("attack_is_coordinated")
 
-    # base_nodes = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         [
-    #             os.path.join(get_package_share_directory("mar_bringup"), "launch"),
-    #             "/_vehiclesec_base.launch.py",
-    #         ]
-    #     )
-    # )
+    base_nodes = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(get_package_share_directory("mar_bringup"), "launch"),
+                "/_vehiclesec_base.launch.py",
+            ]
+        )
+    )
 
     adversaries = OpaqueFunction(function=get_adversaries)
 
@@ -49,7 +49,7 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            # base_nodes,
+            base_nodes,
             n_adversaries_launch_arg,
             adversaries,
             is_coordinated_launch_arg,
