@@ -5,6 +5,7 @@ from rclpy.node import Node
 from std_msgs.msg import ColorRGBA, Header
 from vision_msgs.msg import BoundingBox3D, BoundingBox3DArray
 from visualization_msgs.msg import Marker, MarkerArray
+from builtin_interfaces.msg import Time
 
 
 class AvstackBridgedVisualizer(Node):
@@ -34,7 +35,7 @@ class AvstackBridgedVisualizer(Node):
         self.gt_publisher = None
         self.gt_init_pub_sub()
 
-        # agent namespaces
+        # agent namespaces/frame IDs
         self._agent_namespaces = []
 
         # pub/sub for agent detections
@@ -45,8 +46,12 @@ class AvstackBridgedVisualizer(Node):
         self._tracks_pubs = {}
         self._tracks_subs = {}
 
-        # pub for agent positions
+        # pub for individual agent positions
         self._agent_pose_pubs = {}
+
+        #pub for all agent positions
+        self._all_agent_poses_pub = None
+        self._all_agent_poses_pub_init()
 
         # start new agent discovery
         self.new_agent_discovery_timer = None
@@ -72,15 +77,27 @@ class AvstackBridgedVisualizer(Node):
 
     def _gt_sub_callback(self, msg: ObjectStateArray):
         """Callback function for the ground truth position subscriber.
+        If there are agents, additionally publishes the pose of each agent.
 
         Args:
             msg (ObjectStateArray): Array of ObjectState objects containing ground truth positions
         """
+        #publish all of the ground truth object locations
         points = self._objectStateArray_to_markerArray(
             msg=msg, namespace="object_truth", color=self.colors["blue"]
         )
         self.gt_publisher.publish(points)
-        # self.get_logger().info("Received {} objects".format(len(msg.states)))
+
+        #publish all current agent positions
+        if len(self._agent_namespaces) > 0:
+            agent_poses = self._all_agent_poses_generate_markerArray(
+                stamp = msg.header.stamp,color = self.colors["yellow"]
+            )
+
+            self._all_agent_poses_pub.publish(agent_poses)
+
+        if self.debug:
+            self.get_logger().info("Received {} objects".format(len(msg.states)))
 
     """
     ##########################################################
@@ -274,6 +291,56 @@ class AvstackBridgedVisualizer(Node):
         self._agent_pose_pubs[agent_namespace] = self.create_publisher(
             Marker, "{}/markers/agent_pose".format(agent_namespace), 10
         )
+    
+    def _all_agent_poses_pub_init(self):
+        """Initialize a publisher that publishes a MarkerStateArray object
+        of all current agent poses
+        """
+
+        #initialize the publisher
+
+        self._all_agent_poses_pub = self.create_publisher(
+            MarkerArray,"object_truth/agent_poses",10
+        )
+
+        return
+    
+    def _all_agent_poses_generate_markerArray(
+        self,
+        stamp:Time,
+        color: ColorRGBA
+    )->MarkerArray:
+        """Generate a marker array containing Marker objects at the position of
+        each agent
+
+        Args:
+            stamp (Time): current time stamp in ROS2 time
+            color (ColorRGBA): the color of the marker to use
+
+        Returns:
+            MarkerArray: MarkerArray object containing a marker for each agent
+        """
+        # define a new marker array
+        points = MarkerArray()
+        points.markers = []
+
+        for i in range(len(self._agent_namespaces)):
+
+            #initialize a new header object with the correct frame_id
+            header = Header()
+            header.stamp = stamp
+            header.frame_id = self._agent_namespaces[i]
+
+            # for each agent_namespace, generate a marker for the agent's pose
+            points.markers.append(
+                self._agent_pose_generate_marker(
+                    header=header,
+                    namespace=self._agent_namespaces[i],
+                    color=color
+                )
+            )
+
+        return points
     
     def _agent_pose_generate_marker(
         self,

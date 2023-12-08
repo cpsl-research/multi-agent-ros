@@ -11,6 +11,7 @@ Panels:
         - /MarkerArray2
         - /MarkerArray3
         - /Marker1
+        - /MarkerArray4
       Splitter Ratio: 0.5
     Tree Height: 752
   - Class: rviz_common/Selection
@@ -68,7 +69,7 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        /ego: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -89,10 +90,10 @@ Visualization Manager:
         Value: /object_truth/markers
       Value: true
     - Class: rviz_default_plugins/Marker
-      Enabled: true
+      Enabled: false
       Name: Marker
       Namespaces:
-        /ego: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -100,6 +101,22 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /ego/markers/agent_pose
+      Value: false
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        /agent0: true
+        /agent1: true
+        /agent2: true
+        /agent3: true
+        /ego: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /object_truth/agent_poses
       Value: true
   Enabled: true
   Global Options:
