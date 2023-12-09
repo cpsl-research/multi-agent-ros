@@ -3,10 +3,16 @@ The nodes to run adversary agents
 """
 
 import rclpy
+from avstack.datastructs import DataBucket
+from avstack_bridge.base import Bridge
+from avstack_bridge.detections import DetectionBridge
+from avstack_bridge.tracks import TrackBridge
 from avstack_msgs.msg import BoxTrackArray, BoxTrackArrayWithSenderArray
 from rclpy.node import Node
 from ros2node.api import get_node_names
 from vision_msgs.msg import BoundingBox3DArray
+
+from mar_adv.selection import select_false_negatives, select_false_positives
 
 
 class AdversaryNode(Node):
@@ -22,6 +28,11 @@ class AdversaryNode(Node):
         self.declare_parameter(name="fp_poisson_uncoord", value=6.0)
         self.declare_parameter(name="fn_fraction_uncoord", value=0.20)
         self.ready = False
+        self.init_targets = False
+        self.targets = {"false_positive": [], "false_negative": []}
+
+        # allow for a data buffer to store the last data from the agent
+        self.data_buffer = DataBucket(max_size=5, max_heap=True)
 
         # set up a publisher for the output - type depends if coordinated
         if not self.get_parameter("attack_is_coordinated").value:
@@ -76,16 +87,68 @@ class AdversaryNode(Node):
         self.ready = True
         self.adv_init_timer.cancel()
 
+    def process_targets(self, objects, coordinated: bool, time: float):
+        """Processing the targets for the attacks
+
+        False positives:
+        if we have already created a list of false positives, just propagate
+        those in time and append to the list of existing objects
+
+        False negatives:
+        find if there is a track with the same ID as identified before or one
+        that is sufficiently close in space to the target and eliminate
+        it from the outgoing message.
+        """
+
+        # process false positives
+        for obj in self.targets["false_positive"]:
+            obj.propagate(dt=(time - obj.t))
+            if coordinated:
+                obj_convert = obj.as_track()
+            else:
+                obj_convert = obj.as_detection()
+            objects.append(obj_convert)
+
+        # process false negatives
+        for obj in self.targets["false_negative"]:
+            # perform assignment of existing detections/tracks to targets
+            # TODO
+
+            # remove the ones that were assigned
+            # TODO
+
+            pass
+
+        return objects
+
     def uncoordinated_output_callback(self, msg: BoundingBox3DArray):
         """Called when intercepting detections from the compromised agent/simulator"""
         if self.debug:
             self.get_logger().info(
                 "Received {} detections at the adversary".format(len(msg.boxes))
             )
+        self.data_buffer.push(DetectionBridge.detections_to_avstack(msg))
 
         if self.ready:
+            # first is target selection
+            if not self.init_targets:
+                # select false positive objects randomly in space
+                self.targets["false_positive"] = select_false_positives(
+                    fp_poisson=self.get_parameter("fp_poisson_uncoord").value,
+                    reference=Bridge.header_to_reference(msg.header),
+                )
+
+                # select false negative targets from existing objects
+                self.targets["false_negative"] = select_false_negatives(
+                    existing_objects=self.data_buffer.top(),
+                    fn_fraction=self.get_parameter("fn_fraction_uncoord").value,
+                )
+
             # process inputs
-            raise NotImplementedError
+            objects = self.process_targets(
+                existing_objects=DetectionBridge.detections_to_avstack(msg)
+            )
+            msg_out = BoundingBox3DArray(header=msg.header, boxes=objects)
         else:
             msg_out = msg
 
@@ -105,6 +168,7 @@ class AdversaryNode(Node):
             self.get_logger().info(
                 "Received {} tracks at the adversary".format(len(msg.tracks))
             )
+        self.data_buffer.push(TrackBridge.tracks_to_avstack(msg))
 
         if self.ready:
             # process inputs
