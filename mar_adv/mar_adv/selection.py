@@ -4,7 +4,6 @@ from typing import Dict, List
 import numpy as np
 from avstack.environment.objects import ObjectState
 from avstack.geometry import Attitude, Box3D, Position, Velocity, transform_orientation
-from avstack.geometry.coordinates import cross_product_coord
 from avstack.modules.perception.detections import BoxDetection
 from avstack.modules.tracking.tracks import BasicBoxTrack3D
 
@@ -19,11 +18,22 @@ class TargetObject:
 
     def as_track(self):
         """Format the target state as a track state"""
-        raise
+        return BasicBoxTrack3D(
+            t0=self.obj_state.t,
+            box3d=self.obj_state.box,
+            reference=self.obj_state.reference,
+            obj_type=self.obj_state.obj_type,
+            v=self.obj_state.velocity.x,
+        )
 
     def as_detection(self):
         """Format the target state as a detection"""
-        raise
+        return BoxDetection(
+            source_identifier=0,
+            box=self.obj_state.box,
+            reference=self.obj_state.reference,
+            obj_type=self.obj_state.obj_type,
+        )
 
     def propagate(self, dt: float):
         """Updates target state with kinematics"""
@@ -37,7 +47,7 @@ def select_false_positives(
     n_fp = int(np.random.poisson(fp_poisson))
     targets = []
     for i in range(n_fp):
-        obj = ObjectState(ID=i)
+        obj = ObjectState(ID=i, obj_type="")
 
         # position is random in x-y
         x_vec = x_sigma * np.array([np.random.randn(), np.random.randn(), 0])
@@ -48,9 +58,9 @@ def select_false_positives(
         velocity = Velocity(v_vec, reference=reference)
 
         # attitude is in direction of velocity
-        c1 = velocity.unit()
+        c1 = velocity.unit().x
         c2 = np.array([0, 0, 1])
-        c3 = cross_product_coord(c1, c2)
+        c3 = np.cross(c1, c2)
         R = np.array([c1, c2, c3])  # is this the correct order?
         attitude = Attitude(
             transform_orientation(R, "DCM", "quat"), reference=reference
@@ -71,14 +81,8 @@ def select_false_positives(
 def select_false_negatives(existing_objects, fn_fraction: float) -> List[Dict]:
     n_objects = len(existing_objects)
     n_fn = max(min(1, n_objects), int(fn_fraction * n_objects))
-    targets_selected = np.random.choice(existing_objects, size=n_fn, replace=False)
-    targets = []
-    for obj in targets_selected:
-        if isinstance(obj, BoxDetection):
-            pass
-        elif isinstance(obj, BasicBoxTrack3D):
-            pass
-        else:
-            raise NotImplementedError(type(obj))
-        targets.append(TargetObject(obj_as_state))
+    idx_targets = np.random.choice(
+        list(range(len(existing_objects))), size=n_fn, replace=False
+    )
+    targets = [TargetObject(existing_objects[idx]) for idx in idx_targets]
     return targets

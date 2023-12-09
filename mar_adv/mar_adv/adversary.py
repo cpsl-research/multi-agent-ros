@@ -2,8 +2,9 @@
 The nodes to run adversary agents
 """
 
+import numpy as np
 import rclpy
-from avstack.datastructs import DataBucket
+from avstack.datastructs import PriorityQueue
 from avstack_bridge.base import Bridge
 from avstack_bridge.detections import DetectionBridge
 from avstack_bridge.tracks import TrackBridge
@@ -32,7 +33,7 @@ class AdversaryNode(Node):
         self.targets = {"false_positive": [], "false_negative": []}
 
         # allow for a data buffer to store the last data from the agent
-        self.data_buffer = DataBucket(max_size=5, max_heap=True)
+        self.data_buffer = PriorityQueue(max_size=5, max_heap=True)
 
         # set up a publisher for the output - type depends if coordinated
         if not self.get_parameter("attack_is_coordinated").value:
@@ -87,7 +88,7 @@ class AdversaryNode(Node):
         self.ready = True
         self.adv_init_timer.cancel()
 
-    def process_targets(self, objects, coordinated: bool, time: float):
+    def process_targets(self, objects, coordinated: bool, time: float, fn_threshold=6):
         """Processing the targets for the attacks
 
         False positives:
@@ -101,23 +102,26 @@ class AdversaryNode(Node):
         """
 
         # process false positives
-        for obj in self.targets["false_positive"]:
-            obj.propagate(dt=(time - obj.t))
+        for obj_fp in self.targets["false_positive"]:
+            obj_fp.propagate(dt=(time - obj_fp.t))
             if coordinated:
-                obj_convert = obj.as_track()
+                obj_fp_convert = obj_fp.as_track()
             else:
-                obj_convert = obj.as_detection()
-            objects.append(obj_convert)
+                obj_fp_convert = obj_fp.as_detection()
+            objects.append(obj_fp_convert)
 
         # process false negatives
-        for obj in self.targets["false_negative"]:
+        for obj_fn in self.targets["false_negative"]:
             # perform assignment of existing detections/tracks to targets
-            # TODO
-
-            # remove the ones that were assigned
-            # TODO
-
-            pass
+            dists = [
+                obj.position.distance(obj_fn.last_position, check_reference=False)
+                for obj in objects
+            ]
+            idx_select = np.argmin(dists)
+            if dists[idx_select] <= fn_threshold:
+                # remove the ones that were assigned
+                obj_fn.last_position = objects[idx_select].position
+                del objects[idx_select]
 
         return objects
 
@@ -127,7 +131,10 @@ class AdversaryNode(Node):
             self.get_logger().info(
                 "Received {} detections at the adversary".format(len(msg.boxes))
             )
-        self.data_buffer.push(DetectionBridge.detections_to_avstack(msg))
+        self.data_buffer.push(
+            priority=Bridge.rostime_to_time(msg.header.stamp),
+            item=DetectionBridge.detections_to_avstack(msg),
+        )
 
         if self.ready:
             # first is target selection
@@ -140,15 +147,26 @@ class AdversaryNode(Node):
 
                 # select false negative targets from existing objects
                 self.targets["false_negative"] = select_false_negatives(
-                    existing_objects=self.data_buffer.top(),
+                    existing_objects=self.data_buffer.top(with_priority=False),
                     fn_fraction=self.get_parameter("fn_fraction_uncoord").value,
                 )
 
+                self.init_targets = True
+                if self.debug:
+                    self.get_logger().info(
+                        "Initialized {} fp and {} fn targets".format(
+                            len(self.targets["false_positive"]),
+                            len(self.targets["false_negative"]),
+                        )
+                    )
+
             # process inputs
             objects = self.process_targets(
-                existing_objects=DetectionBridge.detections_to_avstack(msg)
+                objects=DetectionBridge.detections_to_avstack(msg),
+                coordinated=False,
+                time=Bridge.rostime_to_time(msg.header.stamp),
             )
-            msg_out = BoundingBox3DArray(header=msg.header, boxes=objects)
+            msg_out = DetectionBridge.avstack_to_detections(objects, header=msg.header)
         else:
             msg_out = msg
 
