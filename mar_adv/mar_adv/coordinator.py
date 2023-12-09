@@ -2,24 +2,26 @@
 Runs the coordinator for the adversaries
 """
 
-import numpy as np
-import rclpy
-from rclpy.node import Node
-
 from functools import partial
 
+import rclpy
 from avstack.datastructs import DataManager
 from avstack_bridge.base import Bridge
 from avstack_msgs.msg import BoxTrackArray, BoxTrackArrayWithSenderArray
+from rclpy.node import Node
+from ros2node.api import get_node_names
 
 
 class AdversaryCoordinator(Node):
     def __init__(self) -> None:
         super().__init__("adversary_coordinator")
 
-        self.declare_parameter("fp_poisson", 10)
-        self.declare_parameter("fn_fraction", 0.10)
-        self.declare_parameter("dt_init_adv", 5.0)
+        self.declare_parameter(name="debug", value=True)
+
+        # parameters for a coordinated attack
+        self.declare_parameter("fp_poisson_coord", 10)
+        self.declare_parameter("fn_fraction_coord", 0.10)
+        self.declare_parameter("dt_init_adv_coord", 5.0)
 
         # get the init time
         self.adv_init_timer = self.create_timer(
@@ -35,28 +37,38 @@ class AdversaryCoordinator(Node):
 
         # this defaults as a max-heap, so the top item has "highest" time
         self.data_manager = DataManager(
-            max_size=10, max_heap=True,
+            max_size=10,
+            max_heap=True,
         )  # manages collating info from agents
 
         # set up publisher on a timer that sends unified attack objectives
         self.adv_publisher = self.create_publisher(
-            BoxTrackArrayWithSenderArray, "attacks", 10
+            BoxTrackArrayWithSenderArray, "attack_coordination", 10
         )
+
+    @property
+    def name(self):
+        return get_node_names(node=self)
+
+    @property
+    def debug(self):
+        return self.get_parameter("debug").value
 
     @property
     def n_adversaries(self):
         return len(self.adv_subscribers)
-    
+
     def adv_init(self):
         """On the init, create the callback function"""
+        if self.debug:
+            self.get_logger().info("Attack coordinator is ready!")
+
         # cancel the initialization timer
         self.adv_init_timer.cancel()
 
         # timer for future calls
         adv_timer_period = 10  # run again every 10 seconds
-        self.adv_timer = self.create_timer(
-            adv_timer_period, self.adv_callback
-        )
+        self.adv_timer = self.create_timer(adv_timer_period, self.adv_callback)
 
         # run the callback once now
         self.adv_callback()
@@ -81,12 +93,13 @@ class AdversaryCoordinator(Node):
 
     def adv_callback(self):
         """Determines attack objectives in the world frame and publishes
-        
+
         every time you call this function, it resets the attack objectives
         """
 
-        # check the burnin time before executing this
-        self.get_logger().info("Running adv callback!")
+        if self.debug:
+            self.get_logger().info("Running adv callback!")
+
         # first: false positives -- random tracks in world frame
         # n_fps = np.random.poisson(self.get_parameter("fp_poisson").value)
 

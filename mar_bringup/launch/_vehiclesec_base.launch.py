@@ -1,4 +1,5 @@
 import os
+import sys
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -10,24 +11,9 @@ from launch.actions import (
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 
-def get_infra_agents(context):
-    return [
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                [
-                    os.path.join(
-                        get_package_share_directory("mar_bringup"), "launch", "nodes"
-                    ),
-                    "/agent_passive.launch.py",
-                ]
-            ),
-            launch_arguments={
-                "agent_name": f"agent{i}",
-                "agent_pipeline": "passive_agent.py",
-            }.items(),
-        )
-        for i in range(int(context.launch_configurations["n_infrastructure_agents"]))
-    ]
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path)
+from utils import get_infra_agents, get_simulator
 
 
 def generate_launch_description():
@@ -35,16 +21,7 @@ def generate_launch_description():
         "n_infrastructure_agents", default_value="4"
     )
 
-    simulator = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [
-                os.path.join(
-                    get_package_share_directory("mar_bringup"), "launch", "nodes"
-                ),
-                "/carla_point_simulator.launch.py",
-            ]
-        )
-    )
+    simulator = OpaqueFunction(function=get_simulator)
 
     ego_agent = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -57,7 +34,6 @@ def generate_launch_description():
         ),
         launch_arguments={
             "agent_name": "ego",
-            "agent_pipeline": "passive_agent.py",
         }.items(),
     )
 
