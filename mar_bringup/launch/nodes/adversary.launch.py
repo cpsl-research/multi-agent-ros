@@ -10,14 +10,7 @@ def generate_launch_description():
     adversary_name = LaunchConfiguration("adversary_name")
     attack_agent_name = LaunchConfiguration("attack_agent_name")  # the agent to attack
     attack_is_coordinated = LaunchConfiguration("attack_is_coordinated")
-
-    # adversary_name_launch_arg = DeclareLaunchArgument(
-    #     "adversary_name", default_value="adversary1"
-    # )
-
-    # attack_agent_name_launch_arg = DeclareLaunchArgument(
-    #     "attack_agent_name", default_value="agent1"
-    # )
+    output_new_topic = LaunchConfiguration("output_new_topic")
 
     adversary_config = os.path.join(
         get_package_share_directory("mar_bringup"),
@@ -38,6 +31,7 @@ def generate_launch_description():
                 "attack_is_coordinated": attack_is_coordinated,
             },
         ],
+        remappings=[("output", output_new_topic)],
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 

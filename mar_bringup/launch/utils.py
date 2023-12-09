@@ -12,13 +12,13 @@ def get_adversaries(context):
     If the adversary is coordinated, remap tracks to the adversary
     """
     n_adv = int(context.launch_configurations["n_adversaries"])
-    output_remapping = {i: {} for i in range(n_adv)}
+    output_remapping = {}
 
     for i in range(int(context.launch_configurations["n_adversaries"])):
-        if bool(context.launch_configurations["attack_is_coordinated"]):
-            output_remapping[i] = {f"/adversary{i}/outputs", f"/agent{i}/tracks"}
+        if context.launch_configurations["attack_is_coordinated"] == "True":
+            output_remapping[i] = {f"/agent{i}/tracks"}
         else:
-            output_remapping[i] = {f"/adversary{i}/outputs", f"/agent{i}/detections"}
+            output_remapping[i] = {f"/agent{i}/detections"}
 
     return [
         IncludeLaunchDescription(
@@ -36,7 +36,7 @@ def get_adversaries(context):
                 "attack_is_coordinated": context.launch_configurations[
                     "attack_is_coordinated"
                 ],
-                "output_remapping": output_remapping[i],
+                "output_new_topic": output_remapping[i],
             }.items(),
         )
         for i in range(n_adv)
@@ -62,12 +62,12 @@ def get_infra_agents(context):
     *** ASSUMPTION: "adversary-2" attacks "agent-2" ***
     """
     n_infra = int(context.launch_configurations["n_infrastructure_agents"])
-    output_remapping = {i: {} for i in range(n_infra)}
+    output_remapping = {i: "tracks" for i in range(n_infra)}  # default is the same
 
     if attacked(context):
-        if bool(context.launch_configurations["attack_is_coordinated"]):
+        if context.launch_configurations["attack_is_coordinated"] == "True":
             for i in range(int(context.launch_configurations["n_adversaries"])):
-                output_remapping[i] = {f"/agent{i}/tracks": f"/adversary{i}/tracks"}
+                output_remapping[i] = f"/adversary{i}/tracks"
 
     return [
         IncludeLaunchDescription(
@@ -81,8 +81,7 @@ def get_infra_agents(context):
             ),
             launch_arguments={
                 "agent_name": f"agent{i}",
-                "agent_pipeline": "passive_agent.py",
-                "output_remapping": output_remapping[i],
+                "track_new_topic": output_remapping[i],
             }.items(),
         )
         for i in range(n_infra)
@@ -101,9 +100,9 @@ def get_simulator(context):
     output_remapping = {}
 
     if attacked(context):
-        if not bool(context.launch_configurations["attack_is_coordinated"]):
+        if context.launch_configurations["attack_is_coordinated"] == "False":
             for i in range(int(context.launch_configurations["n_adversaries"])):
-                output_remapping[f"/agent{i}/detections"] = f"/adversary{i}/detections"
+                output_remapping[f"agent_{i}_remap"] = f"/adversary{i}/detections"
 
     return [
         IncludeLaunchDescription(
@@ -116,7 +115,10 @@ def get_simulator(context):
                 ]
             ),
             launch_arguments={
-                "output_remapping": output_remapping,
+                "n_infrastructure_agents": context.launch_configurations[
+                    "n_infrastructure_agents"
+                ],
+                **output_remapping,
             }.items(),
         )
     ]

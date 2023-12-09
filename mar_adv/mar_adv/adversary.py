@@ -35,7 +35,7 @@ class AdversaryNode(Node):
 
             # set up a subscriber to detections
             self.in_subscriber = self.create_subscription(
-                BoundingBox3DArray, "detections", self.coordinated_output_callback, 10
+                BoundingBox3DArray, "detections", self.uncoordinated_output_callback, 10
             )
 
             # set up a publisher of detections
@@ -55,7 +55,7 @@ class AdversaryNode(Node):
 
             # set up a subscriber to the object tracks
             self.in_subscriber = self.create_subscription(
-                BoxTrackArray, "tracks", self.uncoordinated_output_callback, 10
+                BoxTrackArray, "tracks", self.coordinated_output_callback, 10
             )
 
             # set up a publisher of tracks

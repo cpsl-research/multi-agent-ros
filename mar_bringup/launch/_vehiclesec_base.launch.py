@@ -34,7 +34,6 @@ def generate_launch_description():
         ),
         launch_arguments={
             "agent_name": "ego",
-            "agent_pipeline": "passive_agent.py",
         }.items(),
     )
 
