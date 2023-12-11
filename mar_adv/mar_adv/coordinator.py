@@ -5,11 +5,20 @@ Runs the coordinator for the adversaries
 from functools import partial
 
 import rclpy
-from avstack.datastructs import DataManager
 from avstack_bridge.base import Bridge
-from avstack_msgs.msg import BoxTrackArray, BoxTrackArrayWithSenderArray
+from avstack_bridge.tracks import TrackBridge
+from avstack_bridge.transform import do_transform_box_track
+from avstack_msgs.msg import BoxTrackArray, BoxTrackArrayWithSender, BoxTrackArrayWithSenderArray
 from rclpy.node import Node
 from ros2node.api import get_node_names
+from std_msgs.msg import Header
+from tf2_ros import TransformListener
+from tf2_ros.buffer import Buffer
+
+from avstack.datastructs import DataManager
+from avstack.modules.clustering import SampledAssignmentClusterer
+from avstack.modules.fusion import CovarianceIntersectionFusionToBox
+from .selection import select_false_negatives, select_false_positives
 
 
 class AdversaryCoordinator(Node):
@@ -23,9 +32,13 @@ class AdversaryCoordinator(Node):
         self.declare_parameter("fn_fraction_coord", 0.10)
         self.declare_parameter("dt_init_adv_coord", 5.0)
 
+        # transform listener
+        self._tf_buffer = Buffer()
+        self._tf_listener = TransformListener(self._tf_buffer, self)
+
         # get the init time
         self.adv_init_timer = self.create_timer(
-            self.get_parameter("dt_init_adv").value, self.adv_init
+            self.get_parameter("dt_init_adv_coord").value, self.adv_init
         )
 
         # set up subscriber to the adversaries
@@ -40,11 +53,13 @@ class AdversaryCoordinator(Node):
             max_size=10,
             max_heap=True,
         )  # manages collating info from agents
+        self.clusterer = SampledAssignmentClusterer(assign_radius=5)
 
         # set up publisher on a timer that sends unified attack objectives
         self.adv_publisher = self.create_publisher(
             BoxTrackArrayWithSenderArray, "attack_coordination", 10
         )
+        self.targets = {"false_positive": [], "false_negative": []}
 
     @property
     def name(self):
@@ -58,7 +73,7 @@ class AdversaryCoordinator(Node):
     def n_adversaries(self):
         return len(self.adv_subscribers)
 
-    def adv_init(self):
+    async def adv_init(self):
         """On the init, create the callback function"""
         if self.debug:
             self.get_logger().info("Attack coordinator is ready!")
@@ -67,11 +82,11 @@ class AdversaryCoordinator(Node):
         self.adv_init_timer.cancel()
 
         # timer for future calls
-        adv_timer_period = 10  # run again every 10 seconds
+        adv_timer_period = 20  # run again every 10 seconds
         self.adv_timer = self.create_timer(adv_timer_period, self.adv_callback)
 
         # run the callback once now
-        self.adv_callback()
+        await self.adv_callback()
 
     def discovery_callback(self):
         """Set up subscribers to any adversaries that exist"""
@@ -86,12 +101,13 @@ class AdversaryCoordinator(Node):
                         10,
                     )
 
-    def tracks_callback(self, msg, agent):
+    def tracks_callback(self, msg: BoxTrackArray, agent: str):
         """Add new track information to the data manager"""
         data = (Bridge.rostime_to_time(msg.header.stamp), msg)
         self.data_manager.push(data, ID=agent)
+        self.get_logger().info("ID: {}, top is {}".format(agent, self.data_manager.top(s_ID=agent)[0]))
 
-    def adv_callback(self):
+    async def adv_callback(self):
         """Determines attack objectives in the world frame and publishes
 
         every time you call this function, it resets the attack objectives
@@ -100,13 +116,65 @@ class AdversaryCoordinator(Node):
         if self.debug:
             self.get_logger().info("Running adv callback!")
 
-        # first: false positives -- random tracks in world frame
-        # n_fps = np.random.poisson(self.get_parameter("fp_poisson").value)
+        # select false positive objects randomly in space -- in world frame
+        self.targets["false_positive"] = select_false_positives(
+            fp_poisson=self.get_parameter("fp_poisson_coord").value,
+            reference=None,
+        )
 
-        # # second: false negatives -- random tracks from the data manager
-        # for agent in self.adv_subscribers:
-        #     tracks = self.data_manager.top(s_ID=agent)
-        #     tracks_fp
+        # select false negative targets from existing objects
+        objects = self.data_manager.top(with_priority=False)
+        world_tracks = {}
+        for ID, data in objects.items():
+            # Suspends callback until transform becomes available
+            from_frame = data.header.frame_id
+            to_frame = "world"
+            when = data.header.stamp
+            if self.debug:
+                self.get_logger().info(
+                    "Awaiting transform:\n  to: {}\n  from: {}\n  when: {}".format(
+                        to_frame, from_frame, when
+                    )
+                )
+            tf = await self._tf_buffer.lookup_transform_async(
+                to_frame, from_frame, when
+            )
+            if self.debug:
+                self.get_logger().info("Found transform!")
+            world_tracks[ID] = [
+                TrackBridge.boxtrack_to_avstack(
+                    do_transform_box_track(track, tf),
+                    header=data.header,
+                ) for track in data.tracks
+            ]
+
+        clusters = self.clusterer(
+            frame=0,
+            timestamp=Bridge.rostime_to_time(when),
+            objects=world_tracks,
+            check_reference=False,
+        )
+        existing_objects = [cluster.sample() for cluster in clusters]
+        self.targets["false_negative"] = select_false_negatives(
+            existing_objects=existing_objects,
+            fn_fraction=self.get_parameter("fn_fraction_coord").value,
+        )
+
+        # send out coordinating adversary messages
+        header = Header(frame_id="world", stamp=when)  # stamp doesn't really matter...
+        fp_tracks = BoxTrackArrayWithSender(
+            header=header,
+            tracks=[TrackBridge.avstack_to_boxtrack(target.as_track()) for target in self.targets["false_positive"]],
+            sender_id="false_positive",
+        )
+        fn_tracks = BoxTrackArrayWithSender(
+            header=header,
+            tracks=[TrackBridge.avstack_to_boxtrack(target.as_track()) for target in self.targets["false_negative"]],
+            sender_id="false_negative"
+        )
+        msg_out = BoxTrackArrayWithSenderArray(track_arrays=[fp_tracks, fn_tracks])
+        self.adv_publisher.publish(msg_out)
+
 
 
 def main(args=None):

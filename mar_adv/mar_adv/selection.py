@@ -3,7 +3,7 @@ from typing import Dict, List
 
 import numpy as np
 from avstack.environment.objects import ObjectState
-from avstack.geometry import Attitude, Box3D, Position, Velocity, transform_orientation
+from avstack.geometry import Attitude, Box3D, Position, Velocity, transform_orientation, PassiveReferenceFrame
 from avstack.modules.perception.detections import BoxDetection
 from avstack.modules.tracking.tracks import BasicBoxTrack3D
 
@@ -44,6 +44,9 @@ class TargetObject:
 def select_false_positives(
     fp_poisson, reference, x_sigma=30, v_sigma=10, hwl=[2, 2, 4]
 ) -> List[Dict]:
+    if reference is None:
+        # this is a dummy reference and doesn't need to be "correct"
+        reference = PassiveReferenceFrame(frame_id="world", timestamp=0.0)
     n_fp = int(np.random.poisson(fp_poisson))
     targets = []
     for i in range(n_fp):
