@@ -60,8 +60,7 @@ def select_false_positives(
         obj = ObjectState(ID=i, obj_type="")
 
         # position is random in x-y
-        # x_vec = x_sigma * np.array([np.random.randn(), np.random.randn(), 0])
-        x_vec = np.array([0, 0, 0])
+        x_vec = x_sigma * np.array([np.random.randn(), np.random.randn(), 0])
         position = Position(x_vec, reference=reference)
 
         # velocity is random in x-y

@@ -126,8 +126,6 @@ class AdversaryNode(Node):
         """
 
         # process false positives
-        # HACK ignore real objects for now
-        objects = []
         for obj_fp in self.targets["false_positive"]:
             obj_fp.propagate(dt=(time - obj_fp.t))
             if coordinated:
@@ -213,7 +211,7 @@ class AdversaryNode(Node):
             raise ValueError("Input must be of length 2 -- FP and FN")
         else:
             to_frame = self.get_parameter("attack_agent_name").value
-            for obj_fp in [msg.track_arrays[0].tracks[3]]:
+            for obj_fp in msg.track_arrays[0].tracks:
                 obj_fp_stamped = BoxTrackStamped(header=msg.header, track=obj_fp)
                 obj_fp_in_agent_frame = self._tf_buffer.transform(
                     object_stamped=obj_fp_stamped,
