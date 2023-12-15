@@ -87,8 +87,8 @@ class CarlaDatasetLoader:
                             frame=self.i_frame, sensor=sensor_name
                         )
                         agent_ref = lidar_calib.reference
-                    agent_ref.to_frame = agent_name
                     agent_ref.from_frame = "world"
+                    agent_ref.to_frame = agent_name
                     agent_ref.timestamp = timestamp
                     agent_poses[agent_name] = Bridge.reference_to_tf2_stamped(agent_ref)
 

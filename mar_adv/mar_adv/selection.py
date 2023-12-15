@@ -60,7 +60,8 @@ def select_false_positives(
         obj = ObjectState(ID=i, obj_type="")
 
         # position is random in x-y
-        x_vec = x_sigma * np.array([np.random.randn(), np.random.randn(), 0])
+        # x_vec = x_sigma * np.array([np.random.randn(), np.random.randn(), 0])
+        x_vec = np.array([0, 0, 0])
         position = Position(x_vec, reference=reference)
 
         # velocity is random in x-y
@@ -68,12 +69,10 @@ def select_false_positives(
         velocity = Velocity(v_vec, reference=reference)
 
         # attitude is in direction of velocity
-        c1 = velocity.unit().x
-        c2 = np.array([0, 0, 1])
-        c3 = np.cross(c1, c2)
-        R = np.array([c1, c2, c3])  # is this the correct order?
+        yaw = np.arctan2(v_vec[2], v_vec[1])
+        euler = [yaw, 0, 0]
         attitude = Attitude(
-            transform_orientation(R, "DCM", "quat"), reference=reference
+            transform_orientation(euler, "euler", "quat"), reference=reference
         )
 
         # set object attributes

@@ -8,8 +8,11 @@ from avstack.datastructs import PriorityQueue
 from avstack_bridge.base import Bridge
 from avstack_bridge.detections import DetectionBridge
 from avstack_bridge.tracks import TrackBridge
-from avstack_bridge.transform import do_transform_boxtrack
-from avstack_msgs.msg import BoxTrackArray, BoxTrackArrayWithSenderArray
+from avstack_msgs.msg import (
+    BoxTrackArray,
+    BoxTrackArrayWithSenderArray,
+    BoxTrackStamped,
+)
 from rclpy.node import Node
 from ros2node.api import get_node_names
 from tf2_ros import TransformListener
@@ -47,7 +50,7 @@ class AdversaryNode(Node):
 
         # transform listener
         self._tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self._tf_buffer, self)
+        self._tf_listener = TransformListener(self._tf_buffer, self)
 
         # allow for a data buffer to store the last data from the agent
         self.data_buffer = PriorityQueue(max_size=5, max_heap=True)
@@ -123,6 +126,8 @@ class AdversaryNode(Node):
         """
 
         # process false positives
+        # HACK ignore real objects for now
+        objects = []
         for obj_fp in self.targets["false_positive"]:
             obj_fp.propagate(dt=(time - obj_fp.t))
             if coordinated:
@@ -207,32 +212,14 @@ class AdversaryNode(Node):
         if not len(msg.track_arrays) == 2:
             raise ValueError("Input must be of length 2 -- FP and FN")
         else:
-            # get the transform to the agent's frame
             to_frame = self.get_parameter("attack_agent_name").value
-            self.get_logger().info(to_frame)
-            from_frame = msg.header.frame_id
-            when = msg.header.stamp
-            tf_to_agent = await self._tf_buffer.lookup_transform_async(
-                to_frame, from_frame, when
-            )
-            self.get_logger().info(str(tf_to_agent))
-
-            # fp targets are in the world coordinate frame -- convert to agent
-            for obj_fp in msg.track_arrays[0].tracks[:1]:
-                obj_fp_prior = TrackBridge.boxtrack_to_avstack(
-                    obj_fp,
-                    header=msg.header,
+            for obj_fp in [msg.track_arrays[0].tracks[3]]:
+                obj_fp_stamped = BoxTrackStamped(header=msg.header, track=obj_fp)
+                obj_fp_in_agent_frame = self._tf_buffer.transform(
+                    object_stamped=obj_fp_stamped,
+                    target_frame=to_frame,
                 )
-                obj_fp_in_agent_frame = do_transform_boxtrack(obj_fp, tf_to_agent)
-                obj_fp_avstack = TrackBridge.boxtrack_to_avstack(
-                    obj_fp_in_agent_frame, header=tf_to_agent.header
-                )
-                self.get_logger().info(
-                    "Before: {}\nAfter: {}".format(
-                        obj_fp_prior.position, obj_fp_avstack.position
-                    )
-                )
-                self.get_logger().info(str(obj_fp_avstack.position))
+                obj_fp_avstack = TrackBridge.boxtrack_to_avstack(obj_fp_in_agent_frame)
                 self.targets["false_positive"].append(
                     TargetObject(obj_state=obj_fp_avstack)
                 )
@@ -274,7 +261,7 @@ class AdversaryNode(Node):
             objects = [
                 obj for obj in objects if obj.position.norm() < threshold_obj_dist
             ]
-            msg_out = TrackBridge.avstack_to_tracks(objects, header=msg.header)
+            msg_out = TrackBridge.avstack_to_tracks(objects, header=msg.header, default_type=BoxTrackArray)
         else:
             msg_out = msg
 

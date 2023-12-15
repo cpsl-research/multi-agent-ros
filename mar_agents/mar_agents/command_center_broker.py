@@ -3,11 +3,11 @@ from functools import partial
 import rclpy
 from avstack.datastructs import DataManager
 from avstack_bridge.base import Bridge
-from avstack_bridge.transform import do_transform_boxtrack
 from avstack_msgs.msg import (
     BoxTrackArray,
     BoxTrackArrayWithSender,
     BoxTrackArrayWithSenderArray,
+    BoxTrackStamped,
 )
 from rclpy.node import Node
 from std_msgs.msg import Header
@@ -91,29 +91,21 @@ class CommandCenterBroker(Node):
             else:  # all must have data if we made it here
                 # take the oldest data from all and check the synchronicity
                 data_arrays = self.data_manager.pop(s_ID=None, with_priority=False)
+                to_frame = "world"
                 track_arrays = []
                 for ID, data in data_arrays.items():
-                    # Suspends callback until transform becomes available
-                    to_frame = data.header.frame_id
-                    from_frame = "world"
-                    when = data.header.stamp
-                    if self.debug:
-                        self.get_logger().info(
-                            "Awaiting transform:\n  to: {}\n  from: {}\n  when: {}".format(
-                                to_frame, from_frame, when
-                            )
-                        )
-                    tf = await self._tf_buffer.lookup_transform_async(
-                        to_frame, from_frame, when
-                    )
-                    if self.debug:
-                        self.get_logger().info("Found transform!")
-
-                    # once we have transform, apply it
+                    # transform to the world
                     new_tracks = [
-                        do_transform_boxtrack(track, tf) for track in data.tracks
+                        self._tf_buffer.transform(
+                            object_stamped=BoxTrackStamped(
+                                header=data.header, track=track
+                            ),
+                            target_frame=to_frame,
+                        ).track
+                        for track in data.tracks
                     ]
-                    new_header = Header(frame_id="world", stamp=when)
+                    when = data.header.stamp
+                    new_header = Header(frame_id=to_frame, stamp=when)
 
                     # save transformed track array
                     track_arrays.append(

@@ -9,11 +9,11 @@ from avstack.datastructs import DataManager
 from avstack.modules.clustering import SampledAssignmentClusterer
 from avstack_bridge.base import Bridge
 from avstack_bridge.tracks import TrackBridge
-from avstack_bridge.transform import do_transform_boxtrack
 from avstack_msgs.msg import (
     BoxTrackArray,
     BoxTrackArrayWithSender,
     BoxTrackArrayWithSenderArray,
+    BoxTrackStamped,
 )
 from rclpy.node import Node
 from ros2node.api import get_node_names
@@ -134,24 +134,14 @@ class AdversaryCoordinator(Node):
         world_tracks = {}
         for ID, data in objects.items():
             # Suspends callback until transform becomes available
-            from_frame = data.header.frame_id
             to_frame = "world"
             when = data.header.stamp
-            if self.debug:
-                self.get_logger().info(
-                    "Awaiting transform:\n  to: {}\n  from: {}\n  when: {}".format(
-                        to_frame, from_frame, when
-                    )
-                )
-            tf = await self._tf_buffer.lookup_transform_async(
-                to_frame, from_frame, when
-            )
-            if self.debug:
-                self.get_logger().info("Found transform!")
             world_tracks[ID] = [
                 TrackBridge.boxtrack_to_avstack(
-                    do_transform_boxtrack(track, tf),
-                    header=data.header,
+                    self._tf_buffer.transform(
+                        object_stamped=BoxTrackStamped(header=data.header, track=track),
+                        target_frame=to_frame,
+                    )
                 )
                 for track in data.tracks
             ]
