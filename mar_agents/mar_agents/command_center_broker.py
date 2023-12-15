@@ -3,7 +3,7 @@ from functools import partial
 import rclpy
 from avstack.datastructs import DataManager
 from avstack_bridge.base import Bridge
-from avstack_bridge.transform import do_transform_box_track
+from avstack_bridge.transform import do_transform_boxtrack
 from avstack_msgs.msg import (
     BoxTrackArray,
     BoxTrackArrayWithSender,
@@ -111,7 +111,7 @@ class CommandCenterBroker(Node):
 
                     # once we have transform, apply it
                     new_tracks = [
-                        do_transform_box_track(track, tf) for track in data.tracks
+                        do_transform_boxtrack(track, tf) for track in data.tracks
                     ]
                     new_header = Header(frame_id="world", stamp=when)
 
@@ -121,7 +121,10 @@ class CommandCenterBroker(Node):
                             header=new_header, tracks=new_tracks, sender_id=ID
                         )
                     )
-                trk_arrarr_msg = BoxTrackArrayWithSenderArray(track_arrays=track_arrays)
+                header = Header(frame_id=to_frame, stamp=when)
+                trk_arrarr_msg = BoxTrackArrayWithSenderArray(
+                    header=header, track_arrays=track_arrays
+                )
                 self.publisher_collated.publish(trk_arrarr_msg)
 
 

@@ -59,7 +59,8 @@ class CarlaPointSimulator(PointSimulator):
 
         # publish agent pose information
         for agent in agent_poses:
-            self.tf_broadcaster.sendTransform(agent_poses[agent])
+            if agent_poses[agent] is not None:
+                self.tf_broadcaster.sendTransform(agent_poses[agent])
 
         # publish detection information
         for agent in agent_detections:

@@ -10,6 +10,7 @@ def generate_launch_description():
     adversary_name = LaunchConfiguration("adversary_name")
     attack_agent_name = LaunchConfiguration("attack_agent_name")  # the agent to attack
     attack_is_coordinated = LaunchConfiguration("attack_is_coordinated")
+    attack_coord_topic = LaunchConfiguration("attack_coord_topic")
     output_new_topic = LaunchConfiguration("output_new_topic")
 
     adversary_config = os.path.join(
@@ -29,6 +30,7 @@ def generate_launch_description():
             {
                 "attack_agent_name": attack_agent_name,
                 "attack_is_coordinated": attack_is_coordinated,
+                "attack_coord_topic": attack_coord_topic,
             },
         ],
         remappings=[("output", output_new_topic)],

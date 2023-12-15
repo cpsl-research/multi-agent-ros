@@ -2,4 +2,4 @@
   ros__parameters:
     fp_poisson_coord: 10
     fn_fraction_coord: 0.10
-    dt_init_adv_coord: 2.0
+    dt_init_adv_coord: 4.0

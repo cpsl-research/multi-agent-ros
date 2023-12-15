@@ -5,19 +5,22 @@ Runs the coordinator for the adversaries
 from functools import partial
 
 import rclpy
+from avstack.datastructs import DataManager
+from avstack.modules.clustering import SampledAssignmentClusterer
 from avstack_bridge.base import Bridge
 from avstack_bridge.tracks import TrackBridge
-from avstack_bridge.transform import do_transform_box_track
-from avstack_msgs.msg import BoxTrackArray, BoxTrackArrayWithSender, BoxTrackArrayWithSenderArray
+from avstack_bridge.transform import do_transform_boxtrack
+from avstack_msgs.msg import (
+    BoxTrackArray,
+    BoxTrackArrayWithSender,
+    BoxTrackArrayWithSenderArray,
+)
 from rclpy.node import Node
 from ros2node.api import get_node_names
 from std_msgs.msg import Header
 from tf2_ros import TransformListener
 from tf2_ros.buffer import Buffer
 
-from avstack.datastructs import DataManager
-from avstack.modules.clustering import SampledAssignmentClusterer
-from avstack.modules.fusion import CovarianceIntersectionFusionToBox
 from .selection import select_false_negatives, select_false_positives
 
 
@@ -31,6 +34,7 @@ class AdversaryCoordinator(Node):
         self.declare_parameter("fp_poisson_coord", 10)
         self.declare_parameter("fn_fraction_coord", 0.10)
         self.declare_parameter("dt_init_adv_coord", 5.0)
+        self.declare_parameter("attack_coord_topic", value="attack_directive")
 
         # transform listener
         self._tf_buffer = Buffer()
@@ -52,12 +56,15 @@ class AdversaryCoordinator(Node):
         self.data_manager = DataManager(
             max_size=10,
             max_heap=True,
+            circular=True,
         )  # manages collating info from agents
         self.clusterer = SampledAssignmentClusterer(assign_radius=5)
 
         # set up publisher on a timer that sends unified attack objectives
         self.adv_publisher = self.create_publisher(
-            BoxTrackArrayWithSenderArray, "attack_coordination", 10
+            BoxTrackArrayWithSenderArray,
+            self.get_parameter("attack_coord_topic").value,
+            10,
         )
         self.targets = {"false_positive": [], "false_negative": []}
 
@@ -105,7 +112,7 @@ class AdversaryCoordinator(Node):
         """Add new track information to the data manager"""
         data = (Bridge.rostime_to_time(msg.header.stamp), msg)
         self.data_manager.push(data, ID=agent)
-        self.get_logger().info("ID: {}, top is {}".format(agent, self.data_manager.top(s_ID=agent)[0]))
+        # self.get_logger().info("ID: {}, top is {}".format(agent, self.data_manager.top(s_ID=agent)[0]))
 
     async def adv_callback(self):
         """Determines attack objectives in the world frame and publishes
@@ -143,10 +150,13 @@ class AdversaryCoordinator(Node):
                 self.get_logger().info("Found transform!")
             world_tracks[ID] = [
                 TrackBridge.boxtrack_to_avstack(
-                    do_transform_box_track(track, tf),
+                    do_transform_boxtrack(track, tf),
                     header=data.header,
-                ) for track in data.tracks
+                )
+                for track in data.tracks
             ]
+        if len(world_tracks) == 0:
+            raise RuntimeError
 
         clusters = self.clusterer(
             frame=0,
@@ -164,17 +174,27 @@ class AdversaryCoordinator(Node):
         header = Header(frame_id="world", stamp=when)  # stamp doesn't really matter...
         fp_tracks = BoxTrackArrayWithSender(
             header=header,
-            tracks=[TrackBridge.avstack_to_boxtrack(target.as_track()) for target in self.targets["false_positive"]],
+            tracks=[
+                TrackBridge.avstack_to_boxtrack(target.as_track())
+                for target in self.targets["false_positive"]
+            ],
             sender_id="false_positive",
         )
         fn_tracks = BoxTrackArrayWithSender(
             header=header,
-            tracks=[TrackBridge.avstack_to_boxtrack(target.as_track()) for target in self.targets["false_negative"]],
-            sender_id="false_negative"
+            tracks=[
+                TrackBridge.avstack_to_boxtrack(target.as_track())
+                for target in self.targets["false_negative"]
+            ],
+            sender_id="false_negative",
         )
-        msg_out = BoxTrackArrayWithSenderArray(track_arrays=[fp_tracks, fn_tracks])
+        msg_out = BoxTrackArrayWithSenderArray(
+            header=header, track_arrays=[fp_tracks, fn_tracks]
+        )
         self.adv_publisher.publish(msg_out)
 
+        if self.debug:
+            self.get_logger().info("Sending out coordination message")
 
 
 def main(args=None):

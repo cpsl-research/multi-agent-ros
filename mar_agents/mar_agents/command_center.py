@@ -8,7 +8,6 @@ import rclpy
 from avstack_bridge.base import Bridge
 from avstack_bridge.tracks import TrackBridge
 from avstack_msgs.msg import BoxTrackArrayWithSenderArray, ObjectStateArray
-from std_msgs.msg import Header
 
 from .base import BaseAgent
 
@@ -37,8 +36,7 @@ class CommandCenter(BaseAgent):
             obj_tracks[track_array.sender_id] = tracks
 
         # run the cc pipeline
-        timestamp = Bridge.rostime_to_time(msg.track_arrays[0].header.stamp)
-        frame_id = msg.track_arrays[0].header.frame_id
+        timestamp = Bridge.rostime_to_time(msg.header.stamp)
         group_tracks = self.pipeline(
             tracks_in=obj_tracks,
             platform=None,
@@ -48,10 +46,9 @@ class CommandCenter(BaseAgent):
         self.i_frame += 1
 
         # convert group tracks to output messages
-        header = Header(stamp=Bridge.time_to_rostime(timestamp), frame_id=frame_id)
         states_msg = TrackBridge.avstack_to_tracks(
             [g_track.state for g_track in group_tracks],
-            header=header,
+            header=msg.header,
             default_type=ObjectStateArray,
         )
         if self.debug:

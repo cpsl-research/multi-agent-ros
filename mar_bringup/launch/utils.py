@@ -33,6 +33,7 @@ def get_adversaries(context):
             launch_arguments={
                 "adversary_name": f"adversary{i}",
                 "attack_agent_name": f"agent{i}",
+                "attack_coord_topic": "/adversary_coordinator/attack_directive",
                 "attack_is_coordinated": context.launch_configurations[
                     "attack_is_coordinated"
                 ],

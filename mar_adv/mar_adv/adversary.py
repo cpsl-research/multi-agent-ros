@@ -8,22 +8,26 @@ from avstack.datastructs import PriorityQueue
 from avstack_bridge.base import Bridge
 from avstack_bridge.detections import DetectionBridge
 from avstack_bridge.tracks import TrackBridge
-from avstack_bridge.transform import do_transform_box_track
+from avstack_bridge.transform import do_transform_boxtrack
 from avstack_msgs.msg import BoxTrackArray, BoxTrackArrayWithSenderArray
 from rclpy.node import Node
 from ros2node.api import get_node_names
-from vision_msgs.msg import BoundingBox3DArray
 from tf2_ros import TransformListener
 from tf2_ros.buffer import Buffer
+from vision_msgs.msg import BoundingBox3DArray
 
-from mar_adv.selection import select_false_negatives, select_false_positives, TargetObject
+from mar_adv.selection import (
+    TargetObject,
+    select_false_negatives,
+    select_false_positives,
+)
 
 
 class AdversaryNode(Node):
     def __init__(self):
         super().__init__("adversary")
 
-        self.declare_parameter(name="debug", value=False)
+        self.declare_parameter(name="debug", value=True)
         self.declare_parameter(name="attack_is_coordinated", value=False)
         self.declare_parameter(name="attack_agent_name", value="agent0")
 
@@ -31,13 +35,19 @@ class AdversaryNode(Node):
         self.declare_parameter(name="dt_init_uncoord", value=5.0)
         self.declare_parameter(name="fp_poisson_uncoord", value=6.0)
         self.declare_parameter(name="fn_fraction_uncoord", value=0.20)
+
+        # parameters for a coordinated attack
+        self.declare_parameter(
+            name="attack_coord_topic", value="/adversary_coordinator/attack_directive"
+        )
+
         self.ready = False
         self.init_targets = False
         self.targets = {"false_positive": [], "false_negative": []}
 
         # transform listener
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
+        self._tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self._tf_buffer, self)
 
         # allow for a data buffer to store the last data from the agent
         self.data_buffer = PriorityQueue(max_size=5, max_heap=True)
@@ -67,7 +77,7 @@ class AdversaryNode(Node):
             # set up a subscriber to the coordination adversary
             self.coord_subscriber = self.create_subscription(
                 BoxTrackArrayWithSenderArray,
-                "attack_coordination",
+                self.get_parameter("attack_coord_topic").value,
                 self.coordinated_input_callback,
                 10,
             )
@@ -88,10 +98,14 @@ class AdversaryNode(Node):
     def debug(self):
         return self.get_parameter("debug").value
 
+    def reset_targets(self):
+        self.targets = {"false_positive": [], "false_negative": []}
+
     def adv_init_uncoord(self):
         """On the init, we are ready"""
         if self.debug:
             self.get_logger().info("Uncoordinated adversary is ready!")
+        self.reset_targets()
         self.ready = True
         self.adv_init_timer.cancel()
 
@@ -144,7 +158,7 @@ class AdversaryNode(Node):
         )
 
         # only select targets if we are in an uncoordinated attack
-        if self.ready and not self.coordinated:
+        if self.ready:
             # first is target selection
             if not self.init_targets:
                 # select false positive objects randomly in space
@@ -181,28 +195,55 @@ class AdversaryNode(Node):
         # send new outputs
         self.out_publisher.publish(msg_out)
 
-    def coordinated_input_callback(self, msg: BoxTrackArrayWithSenderArray):
+    async def coordinated_input_callback(self, msg: BoxTrackArrayWithSenderArray):
         """Called when receiving a directive from the coordinating adversary"""
         if self.debug:
             self.get_logger().info("Received directive from coordinating adversary")
 
         self.ready = True
         self.init_targets = True
-        
+        self.reset_targets()
+
         if not len(msg.track_arrays) == 2:
             raise ValueError("Input must be of length 2 -- FP and FN")
         else:
+            # get the transform to the agent's frame
+            to_frame = self.get_parameter("attack_agent_name").value
+            self.get_logger().info(to_frame)
+            from_frame = msg.header.frame_id
+            when = msg.header.stamp
+            tf_to_agent = await self._tf_buffer.lookup_transform_async(
+                to_frame, from_frame, when
+            )
+            self.get_logger().info(str(tf_to_agent))
+
             # fp targets are in the world coordinate frame -- convert to agent
-            for obj_fp in TrackBridge.boxtrack_to_avstack(msg.track_arrays[0]):
-                tf_to_agent = None  # TODO
-                obj_fp_in_agent_frame = do_transform_box_track(obj_fp, tf_to_agent)
-                self.targets["false_positive"] = TargetObject(obj_state=obj_fp_in_agent_frame)
+            for obj_fp in msg.track_arrays[0].tracks[:1]:
+                obj_fp_prior = TrackBridge.boxtrack_to_avstack(
+                    obj_fp,
+                    header=msg.header,
+                )
+                obj_fp_in_agent_frame = do_transform_boxtrack(obj_fp, tf_to_agent)
+                obj_fp_avstack = TrackBridge.boxtrack_to_avstack(
+                    obj_fp_in_agent_frame, header=tf_to_agent.header
+                )
+                self.get_logger().info(
+                    "Before: {}\nAfter: {}".format(
+                        obj_fp_prior.position, obj_fp_avstack.position
+                    )
+                )
+                self.get_logger().info(str(obj_fp_avstack.position))
+                self.targets["false_positive"].append(
+                    TargetObject(obj_state=obj_fp_avstack)
+                )
 
             # fn targets are in the world coordinate frame -- convert to agent
-            for obj_fn in TrackBridge.boxtrack_to_avstack(msg.track_arrays[1]):
-                tf_to_agent = None  # TODO
-                obj_fn_in_agent_frame = do_transform_box_track(obj_fn, tf_to_agent)
-                self.targets["false_negative"] = TargetObject(obj_state=obj_fn_in_agent_frame)
+            # for obj_fn in msg.track_arrays[1].tracks:
+            #     obj_fn_in_agent_frame = do_transform_boxtrack(obj_fn, tf_to_agent)
+            #     obj_fn_avstack = TrackBridge.boxtrack_to_avstack(
+            #         obj_fn_in_agent_frame, header=tf_to_agent.header
+            #     )
+            #     self.targets["false_negative"].append(TargetObject(obj_state=obj_fn_avstack))
 
         if self.debug:
             self.get_logger().info(
@@ -210,17 +251,15 @@ class AdversaryNode(Node):
                     len(self.targets["false_positive"]),
                     len(self.targets["false_negative"]),
                 )
-            )            
-
-    def coordinated_output_callback(self, msg: BoxTrackArray, threshold_obj_dist: float = 70.0):
-        """Called when intercepting tracks from the compromised agent"""
-        if self.debug:
-            self.get_logger().info(
-                "Received {} tracks at the adversary".format(len(msg.tracks))
             )
+
+    def coordinated_output_callback(
+        self, msg: BoxTrackArray, threshold_obj_dist: float = 70.0
+    ):
+        """Called when intercepting tracks from the compromised agent"""
         self.data_buffer.push(
             priority=Bridge.rostime_to_time(msg.header.stamp),
-            item=TrackBridge.tracks_to_avstack(msg)
+            item=TrackBridge.tracks_to_avstack(msg),
         )
 
         if self.ready:
@@ -228,11 +267,13 @@ class AdversaryNode(Node):
             objects = self.process_targets(
                 objects=TrackBridge.tracks_to_avstack(msg),
                 coordinated=True,
-                time=Bridge.rostime_to_time(msg.header.stamp)
+                time=Bridge.rostime_to_time(msg.header.stamp),
             )
 
             # filter objects greater than a threshold
-            objects = [obj for obj in objects if obj.position.norm() < threshold_obj_dist]
+            objects = [
+                obj for obj in objects if obj.position.norm() < threshold_obj_dist
+            ]
             msg_out = TrackBridge.avstack_to_tracks(objects, header=msg.header)
         else:
             msg_out = msg

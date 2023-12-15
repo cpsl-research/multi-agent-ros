@@ -44,6 +44,10 @@ def generate_launch_description():
                 "/adversary_coordinator.launch.py",
             ]
         ),
+        launch_arguments={
+            "adversary_name": "adversary_coordinator",
+            "attack_coord_topic": "attack_directive",
+        }.items(),
         condition=IfCondition(attack_is_coordinated),  # only on this condition
     )
 
