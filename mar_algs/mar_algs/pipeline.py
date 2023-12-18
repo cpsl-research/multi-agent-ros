@@ -1,6 +1,6 @@
 from typing import Any, Dict, List
 
-from avstack.config import ALGORITHMS, PIPELINE, ConfigDict
+from avstack.config import ALGORITHMS, HOOKS, PIPELINE, ConfigDict
 from avstack.geometry import ReferenceFrame
 
 
@@ -12,9 +12,20 @@ class PassiveAgentPipeline:
         self,
         perception: List[ConfigDict],
         tracking: List[ConfigDict],
+        hooks_pre_percep: List[ConfigDict]=[],
+        hooks_post_percep: List[ConfigDict]=[],
+        hooks_pre_track: List[ConfigDict]=[],
+        hooks_post_track: List[ConfigDict]=[],
     ) -> None:
         self.perception = {percep.ID: ALGORITHMS.build(percep) for percep in perception}
         self.tracking = {tracker.ID: ALGORITHMS.build(tracker) for tracker in tracking}
+
+        self.hooks = {
+            "pre_perception": [HOOKS.build(hook) for hook in hooks_pre_percep],
+            "post_perception": [HOOKS.build(hook) for hook in hooks_post_percep],
+            "pre_tracking": [HOOKS.build(hook) for hook in hooks_pre_track],
+            "post_tracking": [HOOKS.build(hook) for hook in hooks_post_track],
+        }
 
     def __call__(
         self, sensing, platform, frame, timestamp, *args: Any, **kwds: Any
