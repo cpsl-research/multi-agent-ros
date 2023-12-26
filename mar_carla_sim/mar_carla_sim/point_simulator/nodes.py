@@ -1,3 +1,6 @@
+import json
+import os
+
 import rclpy
 from avstack_msgs.msg import ObjectStateArray
 from rclpy.node import Node
@@ -26,6 +29,8 @@ class CarlaPointSimulator(PointSimulator):
         self.declare_parameter("dataset_path", "/data/shared/CARLA/multi-agent-v1")
         self.declare_parameter("scene_idx", 0)
         self.declare_parameter("i_frame_start", 4)
+        self.declare_parameter(name="output_folder", value="outputs")
+        self.index = 0
 
         # set things based on params
         rt_framerate = self.get_parameter("real_time_framerate").value
@@ -45,6 +50,19 @@ class CarlaPointSimulator(PointSimulator):
         # callback timers
         timer_period = 1.0 / rt_framerate
         self.timer = self.create_timer(timer_period, self.timer_callback)
+
+        # log metadata
+        self.output_folder = os.path.join(
+            self.get_parameter("output_folder").value, "simulator"
+        )
+        os.makedirs(self.output_folder, exist_ok=False)
+        metadata = {
+            "scene_idx": self.get_parameter("scene_idx").value,
+            "i_frame_start": self.get_parameter("i_frame_start").value,
+            "dataset_path": self.get_parameter("dataset_path").value,
+        }
+        with open(os.path.join(self.output_folder, "metadata.json"), "w") as f:
+            json.dump(metadata, f)
 
     def timer_callback(self):
         (
@@ -70,6 +88,11 @@ class CarlaPointSimulator(PointSimulator):
                 )
             if agent_detections[agent] is not None:
                 self.publisher_agent_dets[agent].publish(agent_detections[agent])
+
+        # save index-to-frame map
+        with open(os.path.join(self.output_folder, "idx_to_frame_map.txt"), "a") as f:
+            f.write("{} {}\n".format(self.index, i_frame))
+        self.index += 1
 
 
 def main(args=None):

@@ -7,7 +7,7 @@ pipeline = dict(
         assign_radius=2.0
     ),
     group_tracking=dict(
-        type="GroupTrackerWrapper",
+        type="GroupTracker",
         fusion=dict(type="CovarianceIntersectionFusionToBox"),
         tracker=dict(type="BasicBoxTracker3D", check_reference=False),
     ),

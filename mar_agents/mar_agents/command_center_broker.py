@@ -26,6 +26,7 @@ class CommandCenterBroker(Node):
 
         # set to True for more detailed logging for debugging
         self.declare_parameter("debug", False)
+        self.declare_parameter("output_folder", "outputs")
         self.debug = self.get_parameter("debug").value
 
         self._tf_buffer = Buffer()
