@@ -16,6 +16,7 @@ def generate_launch_description():
 
     # HACK: this is a bit hacky.....
     # can we use the launch config variable??
+    output_folder = LaunchConfiguration("output_folder")
     n_infrastructure_agents = LaunchConfiguration("n_infrastructure_agents")
     n_agents = 10
     agent_remaps_configs = [
@@ -29,7 +30,10 @@ def generate_launch_description():
                 package="mar_carla_sim",
                 executable="point_simulator",
                 name="simulator",
-                parameters=[sim_config],
+                parameters=[
+                    sim_config,
+                    {"output_folder": output_folder},
+                ],
                 arguments=["--ros-args", "--log-level", "INFO"],
                 remappings=[
                     *[

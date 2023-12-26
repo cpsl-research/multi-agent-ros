@@ -3,6 +3,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
@@ -11,6 +12,8 @@ def generate_launch_description():
     cc_pipeline_launch_arg = DeclareLaunchArgument(
         "cc_pipeline", default_value="command_center.py"
     )
+
+    output_folder = LaunchConfiguration("output_folder")
 
     cc_config = os.path.join(
         get_package_share_directory("mar_bringup"),
@@ -31,7 +34,7 @@ def generate_launch_description():
         executable="command_center_broker",
         namespace="command_center",
         name="command_center_broker",
-        parameters=[cc_broker_config],
+        parameters=[cc_broker_config, {"output_folder": output_folder}],
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 
@@ -40,7 +43,7 @@ def generate_launch_description():
         executable="command_center",
         namespace="command_center",
         name="command_center",
-        parameters=[cc_config],
+        parameters=[cc_config, {"output_folder": output_folder}],
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 

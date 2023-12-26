@@ -1,3 +1,4 @@
+import json
 import os
 
 from ament_index_python.packages import get_package_share_directory
@@ -5,7 +6,21 @@ from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 
-def get_adversaries(context):
+def log_launch_metadata(output_folder, context):
+    """Log the launch metadata to a file"""
+    meta_file = "launch_metadata.json"
+    os.makedirs(output_folder, exist_ok=True)
+    l_config = context.launch_configurations
+    metadata = {
+        "n_adversaries": int(l_config["n_adversaries"]),
+        "attack_is_coordinated": l_config["attack_is_coordinated"] == "True",
+        "n_infrastructure_agents": int(l_config["n_infrastructure_agents"]),
+    }
+    with open(os.path.join(output_folder, meta_file), "w") as f:
+        json.dump(metadata, f)
+
+
+def get_adversaries(output_folder, context):
     """Set up the adversaries to attack certain agents
 
     If the adversary is uncoordinated, remap detections to the adversary...
@@ -38,6 +53,7 @@ def get_adversaries(context):
                     "attack_is_coordinated"
                 ],
                 "output_new_topic": output_remapping[i],
+                "output_folder": output_folder,
             }.items(),
         )
         for i in range(n_adv)
@@ -53,7 +69,7 @@ def attacked(context):
         return False
 
 
-def get_infra_agents(context):
+def get_infra_agents(output_folder, context):
     """Set up the infrastructure agents
 
     For the vehiclesec experiments, these could be compromised.
@@ -83,13 +99,14 @@ def get_infra_agents(context):
             launch_arguments={
                 "agent_name": f"agent{i}",
                 "track_new_topic": output_remapping[i],
+                "output_folder": output_folder,
             }.items(),
         )
         for i in range(n_infra)
     ]
 
 
-def get_simulator(context):
+def get_simulator(output_folder, context):
     """Set up the simulator
 
     This function is here in case we need to do output
@@ -119,6 +136,7 @@ def get_simulator(context):
                 "n_infrastructure_agents": context.launch_configurations[
                     "n_infrastructure_agents"
                 ],
+                "output_folder": output_folder,
                 **output_remapping,
             }.items(),
         )

@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict, List
 
 from avstack.config import ALGORITHMS, PIPELINE, ConfigDict
@@ -13,15 +14,27 @@ class PassiveAgentPipeline:
         perception: List[ConfigDict],
         tracking: List[ConfigDict],
         name: str = "agent",
-        save_folder: str = "last_run",
+        output_folder: str = "last_run",
     ) -> None:
 
         self.perception = {
-            percep.ID: ALGORITHMS.build(percep, default_args={"name": name})
+            percep.ID: ALGORITHMS.build(
+                percep,
+                default_args={
+                    "name": name,
+                    "output_folder": os.path.join(output_folder, "detections"),
+                },
+            )
             for percep in perception
         }
         self.tracking = {
-            tracker.ID: ALGORITHMS.build(tracker, default_args={"name": name})
+            tracker.ID: ALGORITHMS.build(
+                tracker,
+                default_args={
+                    "name": name,
+                    "output_folder": os.path.join(output_folder, "tracks"),
+                },
+            )
             for tracker in tracking
         }
 
@@ -59,10 +72,12 @@ class CommandCenterPipeline:
         clustering: ConfigDict,
         group_tracking: ConfigDict,
         name: str = "command_center",
-        save_folder: str = "last_run",
+        output_folder: str = "last_run",
     ) -> None:
         self.clustering = ALGORITHMS.build(clustering, default_args={"name": name})
-        self.group_tracking = ALGORITHMS.build(group_tracking, default_args={"name": name})
+        self.group_tracking = ALGORITHMS.build(
+            group_tracking, default_args={"name": name}
+        )
         # self.trust = PIPELINE.build(trust)
 
     def __call__(

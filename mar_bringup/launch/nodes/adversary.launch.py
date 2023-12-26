@@ -12,6 +12,7 @@ def generate_launch_description():
     attack_is_coordinated = LaunchConfiguration("attack_is_coordinated")
     attack_coord_topic = LaunchConfiguration("attack_coord_topic")
     output_new_topic = LaunchConfiguration("output_new_topic")
+    output_folder = LaunchConfiguration("output_folder")
 
     adversary_config = os.path.join(
         get_package_share_directory("mar_bringup"),
@@ -31,6 +32,7 @@ def generate_launch_description():
                 "attack_agent_name": attack_agent_name,
                 "attack_is_coordinated": attack_is_coordinated,
                 "attack_coord_topic": attack_coord_topic,
+                "output_folder": output_folder,
             },
         ],
         remappings=[("output", output_new_topic)],

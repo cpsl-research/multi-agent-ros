@@ -33,6 +33,7 @@ class AdversaryNode(Node):
         self.declare_parameter(name="debug", value=True)
         self.declare_parameter(name="attack_is_coordinated", value=False)
         self.declare_parameter(name="attack_agent_name", value="agent0")
+        self.declare_parameter(name="output_folder", value="outputs")
 
         # parameters for an uncoordinated attack
         self.declare_parameter(name="dt_init_uncoord", value=5.0)

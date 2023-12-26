@@ -9,14 +9,16 @@ from ros2node.api import get_node_names
 from tf2_ros import TransformListener
 from tf2_ros.buffer import Buffer
 
-import mar_algs  # noqa to set the pipeline
-
 
 class BaseAgent(Node):
     def __init__(self, name, default_pipeline):
         super().__init__(name)
         self.declare_parameter("namespace", "")
-        self.declare_parameter("save_folder", "last_run")
+        self.declare_parameter("output_folder", "last_run")
+        output_folder = os.path.join(
+            self.get_parameter("output_folder").value,
+            self.get_parameter("namespace").value,
+        )
 
         # transform listener
         self.tf_buffer = Buffer()
@@ -44,7 +46,7 @@ class BaseAgent(Node):
             self.pipeline_cfg,
             default_args={
                 "name": self.get_parameter("namespace").value,
-                "save_folder": self.get_parameter("save_folder").value,
+                "output_folder": output_folder,
             },
         )
 
