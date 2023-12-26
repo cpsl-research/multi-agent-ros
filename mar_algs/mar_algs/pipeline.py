@@ -12,13 +12,18 @@ class PassiveAgentPipeline:
         self,
         perception: List[ConfigDict],
         tracking: List[ConfigDict],
-        agent_name: str = "agent",
+        name: str = "agent",
+        save_folder: str = "last_run",
     ) -> None:
+
         self.perception = {
-            percep.ID: ALGORITHMS.build(percep, default_args={""})
+            percep.ID: ALGORITHMS.build(percep, default_args={"name": name})
             for percep in perception
         }
-        self.tracking = {tracker.ID: ALGORITHMS.build(tracker) for tracker in tracking}
+        self.tracking = {
+            tracker.ID: ALGORITHMS.build(tracker, default_args={"name": name})
+            for tracker in tracking
+        }
 
     def __call__(
         self, sensing, platform, frame, timestamp, *args: Any, **kwds: Any
@@ -53,10 +58,11 @@ class CommandCenterPipeline:
         self,
         clustering: ConfigDict,
         group_tracking: ConfigDict,
-        cc_name: str = "command_center",
+        name: str = "command_center",
+        save_folder: str = "last_run",
     ) -> None:
-        self.clustering = ALGORITHMS.build(clustering)
-        self.group_tracking = ALGORITHMS.build(group_tracking)
+        self.clustering = ALGORITHMS.build(clustering, default_args={"name": name})
+        self.group_tracking = ALGORITHMS.build(group_tracking, default_args={"name": name})
         # self.trust = PIPELINE.build(trust)
 
     def __call__(

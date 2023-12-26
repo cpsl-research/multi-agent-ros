@@ -13,6 +13,7 @@ def generate_launch_description():
         namespace=agent_name,
         name="agent",
         arguments=["--ros-args", "--log-level", "INFO"],
+        parameters=[{"namespace": agent_name}],
         remappings=[("tracks", track_new_topic)],
     )
 
