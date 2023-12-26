@@ -16,13 +16,14 @@ class CarlaDatasetLoader:
         self.scene_dataset = CarlaScenesManager(
             data_dir=dataset_path
         ).get_scene_dataset_by_index(scene_idx=scene_idx)
-        self.i_frame = i_frame_start  # start after initialization
+        self.i_frame = i_frame_start - 1  # start after initialization
 
     def load_next(self) -> ObjectStateArray:
         """Loads the next set of data from the dataset
 
         'next' is defined in this case as the next available frame of NPC data
         """
+        self.i_frame += 1
         objs = None
         while True:
             try:
@@ -34,7 +35,6 @@ class CarlaDatasetLoader:
             else:
                 break
         timestamp = self.scene_dataset.get_timestamp(frame=self.i_frame, sensor="npcs")
-        self.i_frame += 1
 
         # Process objects once loaded
         if objs is None:
