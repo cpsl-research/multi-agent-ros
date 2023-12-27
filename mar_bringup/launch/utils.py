@@ -29,7 +29,7 @@ def get_adversaries(output_folder, context):
     n_adv = int(context.launch_configurations["n_adversaries"])
     output_remapping = {}
 
-    for i in range(1, 1+int(context.launch_configurations["n_adversaries"])):
+    for i in range(1, 1 + int(context.launch_configurations["n_adversaries"])):
         if context.launch_configurations["attack_is_coordinated"] == "True":
             output_remapping[i] = {f"/agent{i}/tracks"}
         else:
@@ -56,7 +56,7 @@ def get_adversaries(output_folder, context):
                 "output_folder": output_folder,
             }.items(),
         )
-        for i in range(1, 1+n_adv)
+        for i in range(1, 1 + n_adv)
     ]
 
 
@@ -79,11 +79,13 @@ def get_infra_agents(output_folder, context):
     *** ASSUMPTION: "adversary-i" attacks "agent-i" ***
     """
     n_infra = int(context.launch_configurations["n_infrastructure_agents"])
-    output_remapping = {i: "tracks" for i in range(1, 1+n_infra)}  # default is the same
+    output_remapping = {
+        i: "tracks" for i in range(1, 1 + n_infra)
+    }  # default is the same
 
     if attacked(context):
         if context.launch_configurations["attack_is_coordinated"] == "True":
-            for i in range(1, 1+int(context.launch_configurations["n_adversaries"])):
+            for i in range(1, 1 + int(context.launch_configurations["n_adversaries"])):
                 output_remapping[i] = f"/adversary{i}/tracks"
 
     return [
@@ -102,7 +104,7 @@ def get_infra_agents(output_folder, context):
                 "output_folder": output_folder,
             }.items(),
         )
-        for i in range(1, 1+n_infra)
+        for i in range(1, 1 + n_infra)
     ]
 
 
@@ -119,7 +121,7 @@ def get_simulator(output_folder, context):
 
     if attacked(context):
         if context.launch_configurations["attack_is_coordinated"] == "False":
-            for i in range(1, 1+int(context.launch_configurations["n_adversaries"])):
+            for i in range(1, 1 + int(context.launch_configurations["n_adversaries"])):
                 output_remapping[f"agent_{i}_remap"] = f"/adversary{i}/detections"
 
     return [
