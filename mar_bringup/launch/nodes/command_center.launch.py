@@ -34,7 +34,10 @@ def generate_launch_description():
         executable="command_center_broker",
         namespace="command_center",
         name="command_center_broker",
-        parameters=[cc_broker_config, {"output_folder": output_folder}],
+        parameters=[
+            cc_broker_config,
+            {"namespace": "command_center_broker", "output_folder": output_folder},
+        ],
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 
@@ -43,7 +46,10 @@ def generate_launch_description():
         executable="command_center",
         namespace="command_center",
         name="command_center",
-        parameters=[cc_config, {"output_folder": output_folder}],
+        parameters=[
+            cc_config,
+            {"namespace": "command_center", "output_folder": output_folder},
+        ],
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 

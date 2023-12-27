@@ -7,7 +7,7 @@ information from all of the agents.
 import rclpy
 from avstack_bridge.base import Bridge
 from avstack_bridge.tracks import TrackBridge
-from avstack_msgs.msg import BoxTrackArrayWithSenderArray, ObjectStateArray
+from avstack_msgs.msg import BoxTrackArray, BoxTrackArrayWithSenderArray
 
 from .base import BaseAgent
 
@@ -26,10 +26,10 @@ class CommandCenter(BaseAgent):
         )
 
         # publish fused results
-        self.pubsliher_fused = self.create_publisher(ObjectStateArray, "tracks", 10)
+        self.publisher_tracks = self.create_publisher(BoxTrackArray, "tracks", 10)
         self.i_frame = 0
 
-    def pipeline_callback(self, msg: BoxTrackArrayWithSenderArray) -> ObjectStateArray:
+    def pipeline_callback(self, msg: BoxTrackArrayWithSenderArray) -> BoxTrackArray:
         obj_tracks = {}
         for track_array in msg.track_arrays:
             tracks = TrackBridge.tracks_to_avstack(track_array)
@@ -46,14 +46,15 @@ class CommandCenter(BaseAgent):
         self.i_frame += 1
 
         # convert group tracks to output messages
-        states_msg = TrackBridge.avstack_to_tracks(
+        msg_tracks = TrackBridge.avstack_to_tracks(
             [g_track.state for g_track in group_tracks],
             header=msg.header,
-            default_type=ObjectStateArray,
+            default_type=BoxTrackArray,
         )
+        self.publisher_tracks.publish(msg_tracks)
         if self.debug:
             self.get_logger().info(
-                "Maintaining {} group tracks".format(len(states_msg.states))
+                "Maintaining {} group tracks".format(len(group_tracks))
             )
 
 

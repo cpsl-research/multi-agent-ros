@@ -76,7 +76,11 @@ class CommandCenterPipeline:
     ) -> None:
         self.clustering = ALGORITHMS.build(clustering, default_args={"name": name})
         self.group_tracking = ALGORITHMS.build(
-            group_tracking, default_args={"name": name}
+            group_tracking,
+            default_args={
+                "name": name,
+                "output_folder": os.path.join(output_folder, "tracks"),
+            },
         )
         # self.trust = PIPELINE.build(trust)
 
