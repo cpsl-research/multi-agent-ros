@@ -67,7 +67,7 @@ class CarlaDatasetLoader:
 
                 # get agent names:
                 agent_names = {}
-                ID = 0
+                ID = 1
                 for agent_lidar_sensor in self.scene_dataset.sensor_IDs.keys():
                     if ("lidar" in agent_lidar_sensor.lower()) and "infra" in (
                         agent_lidar_sensor.lower()
