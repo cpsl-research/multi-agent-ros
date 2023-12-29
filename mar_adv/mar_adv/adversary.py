@@ -30,7 +30,7 @@ class AdversaryNode(Node):
     def __init__(self):
         super().__init__("adversary")
 
-        self.declare_parameter(name="debug", value=True)
+        self.declare_parameter(name="debug", value=False)
         self.declare_parameter(name="attack_is_coordinated", value=False)
         self.declare_parameter(name="attack_agent_name", value="agent0")
         self.declare_parameter(name="output_folder", value="outputs")

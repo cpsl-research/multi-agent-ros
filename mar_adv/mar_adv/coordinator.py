@@ -126,6 +126,7 @@ class AdversaryCoordinator(Node):
         # select false positive objects randomly in space -- in world frame
         self.targets["false_positive"] = select_false_positives(
             fp_poisson=self.get_parameter("fp_poisson_coord").value,
+            tf_world_to_agent=None,  # already in world
             reference=None,
         )
 

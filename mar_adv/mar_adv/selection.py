@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import numpy as np
 from avstack.environment.objects import ObjectState
@@ -54,7 +54,7 @@ class TargetObject:
 def select_false_positives(
     fp_poisson,
     reference,
-    tf_world_to_agent: TransformStamped,
+    tf_world_to_agent: Union[TransformStamped, None],
     x_sigma: float = 30,
     v_sigma: float = 10,
     hwl: List[float] = [2, 2, 4],
@@ -85,28 +85,33 @@ def select_false_positives(
         q_obj = transform_orientation(euler, "euler", "quat")
 
         # adjust for false positive selection that is coplanar with ground
-        reference_agent = Bridge.tf2_to_reference(tf_world_to_agent)
-        x_gp = deepcopy(reference_agent.x)
-        x_gp[2] = 0.0
-        e_gp = transform_orientation(reference_agent.q, "quat", "euler")
-        q_gp = transform_orientation([0, 0, e_gp[2]], "euler", "quat")
-        reference_gp = ReferenceFrame(
-            x=x_gp, q=q_gp, reference=reference_agent.reference
-        )
+        if tf_world_to_agent:
+            reference_agent = Bridge.tf2_to_reference(tf_world_to_agent)
+            x_gp = deepcopy(reference_agent.x)
+            x_gp[2] = 0.0
+            e_gp = transform_orientation(reference_agent.q, "quat", "euler")
+            q_gp = transform_orientation([0, 0, e_gp[2]], "euler", "quat")
+            reference_gp = ReferenceFrame(
+                x=x_gp, q=q_gp, reference=reference_agent.reference
+            )
 
-        # convert to avstack objects
-        position = Position(x_vec, reference=reference_gp).change_reference(
-            reference_agent, inplace=False
-        )
-        velocity = Velocity(v_vec, reference=reference_gp).change_reference(
-            reference_agent, inplace=False
-        )
-        attitude = Attitude(q_obj, reference=reference_gp).change_reference(
-            reference_agent, inplace=False
-        )
-        position.reference = reference
-        velocity.reference = reference
-        attitude.reference = reference
+            # convert to avstack objects
+            position = Position(x_vec, reference=reference_gp).change_reference(
+                reference_agent, inplace=False
+            )
+            velocity = Velocity(v_vec, reference=reference_gp).change_reference(
+                reference_agent, inplace=False
+            )
+            attitude = Attitude(q_obj, reference=reference_gp).change_reference(
+                reference_agent, inplace=False
+            )
+            position.reference = reference
+            velocity.reference = reference
+            attitude.reference = reference
+        else:
+            position = Position(x_vec, reference=reference)
+            velocity = Velocity(v_vec, reference=reference)
+            attitude = Attitude(q_obj, reference=reference)
 
         # set object attributes
         obj.set(
