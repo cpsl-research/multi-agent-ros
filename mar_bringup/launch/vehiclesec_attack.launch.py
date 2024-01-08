@@ -21,6 +21,13 @@ from utils import get_adversaries, log_launch_metadata
 
 
 def generate_launch_description():
+    attack_is_coordinated = LaunchConfiguration("attack_is_coordinated")
+
+    n_adversaries_launch_arg = DeclareLaunchArgument("n_adversaries")
+    is_coordinated_launch_arg = DeclareLaunchArgument("attack_is_coordinated")
+    # run_name = DeclareLaunchArgument("run_name", default_value="")
+
+    # set saving folder
     run_name = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     output_folder = os.path.join("outputs", run_name)
     os.makedirs(output_folder)
@@ -28,11 +35,6 @@ def generate_launch_description():
     if os.path.exists(symlink):
         os.remove(symlink)
     os.symlink(src=run_name, dst=symlink, target_is_directory=True)
-
-    attack_is_coordinated = LaunchConfiguration("attack_is_coordinated")
-
-    n_adversaries_launch_arg = DeclareLaunchArgument("n_adversaries")
-    is_coordinated_launch_arg = DeclareLaunchArgument("attack_is_coordinated")
 
     base_nodes = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(

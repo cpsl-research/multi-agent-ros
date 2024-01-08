@@ -29,6 +29,7 @@ class CarlaPointSimulator(PointSimulator):
         self.declare_parameter("dataset_path", "/data/shared/CARLA/multi-agent-v1")
         self.declare_parameter("scene_idx", 0)
         self.declare_parameter("i_frame_start", 4)
+        self.declare_parameter("max_frames", 200)
         self.declare_parameter(name="output_folder", value="outputs")
         self.index = 0
 
@@ -93,6 +94,8 @@ class CarlaPointSimulator(PointSimulator):
         with open(os.path.join(self.output_folder, "idx_to_frame_map.txt"), "a") as f:
             f.write("{} {}\n".format(self.index, i_frame))
         self.index += 1
+        if self.index >= self.get_parameter("max_frames").value:
+            raise SystemExit
 
 
 def main(args=None):
@@ -100,7 +103,10 @@ def main(args=None):
 
     sim = CarlaPointSimulator()
 
-    rclpy.spin(sim)
+    try:
+        rclpy.spin(sim)
+    except SystemExit:  # <--- process the exception
+        rclpy.logging.get_logger("Quitting").info("Done")
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically

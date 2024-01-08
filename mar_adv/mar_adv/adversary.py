@@ -30,7 +30,7 @@ class AdversaryNode(Node):
     def __init__(self):
         super().__init__("adversary")
 
-        self.declare_parameter(name="debug", value=True)
+        self.declare_parameter(name="debug", value=False)
         self.declare_parameter(name="attack_is_coordinated", value=False)
         self.declare_parameter(name="attack_agent_name", value="agent0")
         self.declare_parameter(name="output_folder", value="outputs")
@@ -150,7 +150,7 @@ class AdversaryNode(Node):
 
         return objects
 
-    def uncoordinated_output_callback(self, msg: BoundingBox3DArray):
+    async def uncoordinated_output_callback(self, msg: BoundingBox3DArray):
         """Called when intercepting detections from the compromised agent/simulator"""
         if self.debug:
             self.get_logger().info(
@@ -165,9 +165,16 @@ class AdversaryNode(Node):
         if self.ready:
             # first is target selection
             if not self.init_targets:
+                transform = await self._tf_buffer.lookup_transform_async(
+                    source_frame=msg.header.frame_id,
+                    target_frame="world",
+                    time=rclpy.time.Time(),
+                )
+
                 # select false positive objects randomly in space
                 self.targets["false_positive"] = select_false_positives(
                     fp_poisson=self.get_parameter("fp_poisson_uncoord").value,
+                    tf_world_to_agent=transform,
                     reference=Bridge.header_to_reference(msg.header),
                 )
 

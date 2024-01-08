@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import numpy as np
 from avstack.environment.objects import ObjectState
@@ -8,11 +8,14 @@ from avstack.geometry import (
     Box3D,
     PassiveReferenceFrame,
     Position,
+    ReferenceFrame,
     Velocity,
     transform_orientation,
 )
 from avstack.modules.perception.detections import BoxDetection
 from avstack.modules.tracking.tracks import BasicBoxTrack3D
+from avstack_bridge.base import Bridge
+from geometry_msgs.msg import TransformStamped
 
 
 class TargetObject:
@@ -49,8 +52,19 @@ class TargetObject:
 
 
 def select_false_positives(
-    fp_poisson, reference, x_sigma=30, v_sigma=10, hwl=[2, 2, 4]
+    fp_poisson,
+    reference,
+    tf_world_to_agent: Union[TransformStamped, None],
+    x_sigma: float = 30,
+    v_sigma: float = 10,
+    hwl: List[float] = [2, 2, 4],
 ) -> List[Dict]:
+    """Create some false positives for attacks.
+
+    Keep in mind the reference frame may not be parallel to the group plane.
+    Therefore, the generation of false positive targets should be assumed
+    to be made relative to a projected sensor plane that is co-planar with ground.
+    """
     if reference is None:
         # this is a dummy reference and doesn't need to be "correct"
         reference = PassiveReferenceFrame(frame_id="world", timestamp=0.0)
@@ -61,18 +75,43 @@ def select_false_positives(
 
         # position is random in x-y
         x_vec = x_sigma * np.array([np.random.randn(), np.random.randn(), 0])
-        position = Position(x_vec, reference=reference)
 
         # velocity is random in x-y
         v_vec = v_sigma * np.array([np.random.randn(), np.random.randn(), 0])
-        velocity = Velocity(v_vec, reference=reference)
 
         # attitude is in direction of velocity
         yaw = np.arctan2(v_vec[2], v_vec[1])
         euler = [yaw, 0, 0]
-        attitude = Attitude(
-            transform_orientation(euler, "euler", "quat"), reference=reference
-        )
+        q_obj = transform_orientation(euler, "euler", "quat")
+
+        # adjust for false positive selection that is coplanar with ground
+        if tf_world_to_agent:
+            reference_agent = Bridge.tf2_to_reference(tf_world_to_agent)
+            x_gp = deepcopy(reference_agent.x)
+            x_gp[2] = 0.0
+            e_gp = transform_orientation(reference_agent.q, "quat", "euler")
+            q_gp = transform_orientation([0, 0, e_gp[2]], "euler", "quat")
+            reference_gp = ReferenceFrame(
+                x=x_gp, q=q_gp, reference=reference_agent.reference
+            )
+
+            # convert to avstack objects
+            position = Position(x_vec, reference=reference_gp).change_reference(
+                reference_agent, inplace=False
+            )
+            velocity = Velocity(v_vec, reference=reference_gp).change_reference(
+                reference_agent, inplace=False
+            )
+            attitude = Attitude(q_obj, reference=reference_gp).change_reference(
+                reference_agent, inplace=False
+            )
+            position.reference = reference
+            velocity.reference = reference
+            attitude.reference = reference
+        else:
+            position = Position(x_vec, reference=reference)
+            velocity = Velocity(v_vec, reference=reference)
+            attitude = Attitude(q_obj, reference=reference)
 
         # set object attributes
         obj.set(

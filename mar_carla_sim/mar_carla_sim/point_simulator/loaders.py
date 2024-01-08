@@ -39,8 +39,7 @@ class CarlaDatasetLoader:
         # Process objects once loaded
         if objs is None:
             # we must be done??
-            # TODO -- how to exit?
-            raise
+            raise SystemExit
         else:
             # convert object messages
             obj_header = Bridge.reference_to_header(
@@ -67,7 +66,7 @@ class CarlaDatasetLoader:
 
                 # get agent names:
                 agent_names = {}
-                ID = 0
+                ID = 1
                 for agent_lidar_sensor in self.scene_dataset.sensor_IDs.keys():
                     if ("lidar" in agent_lidar_sensor.lower()) and "infra" in (
                         agent_lidar_sensor.lower()
@@ -93,9 +92,16 @@ class CarlaDatasetLoader:
                     agent_poses[agent_name] = Bridge.reference_to_tf2_stamped(agent_ref)
 
                     # agent detections
-                    agent_dets = self.scene_dataset.get_objects(
-                        frame=self.i_frame, sensor=sensor_name
-                    )
+                    try:
+                        agent_dets = self.scene_dataset.get_objects(
+                            frame=self.i_frame,
+                            sensor=sensor_name,
+                            max_dist=60,
+                        )
+                    except FileNotFoundError:
+                        # this means we are done (I think)
+                        raise SystemExit
+
                     if agent_name == "ego":
                         agent_dets = [
                             det.change_reference(agent_ref, inplace=False)

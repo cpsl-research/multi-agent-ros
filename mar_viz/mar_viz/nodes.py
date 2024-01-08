@@ -125,7 +125,7 @@ class AvstackBridgedVisualizer(Node):
             if (
                 ("ego" in namespace)
                 or ("agent" in namespace)
-                and ("command_center" not in namespace)
+                or ("command_center" in namespace)
             ):
                 if namespace not in self._agent_namespaces:
                     self._add_agent(agent_namespace=namespace)
@@ -141,7 +141,7 @@ class AvstackBridgedVisualizer(Node):
         detections and tracking
 
         Args:
-            agent_namespace (str): the agent's namespace (ex:"ego" or "agent1")
+            agent_namespace (str): the agent's namespace (ex:"ego" or "agent1" or "command_center")
         """
 
         if agent_namespace not in self._agent_namespaces:
@@ -178,7 +178,7 @@ class AvstackBridgedVisualizer(Node):
 
         Args:
             agent_namespace (str): the agent's namespace
-                (ex: "ego" or "agent1")
+                (ex: "ego" or "agent1" or "command_center)
         """
         # initialize the subscriber
         self._detections_subs[agent_namespace] = self.create_subscription(
@@ -200,8 +200,8 @@ class AvstackBridgedVisualizer(Node):
             msg (BoundingBox3DArray): array of bounding
                 BoundingBox3D object's representing the
                 agent's detections
-            agent_namespace (str): he agent's namespace
-                (ex: "ego" or "agent1")
+            agent_namespace (str): the agent's namespace
+                (ex: "ego" or "agent1" or "command_center")
         """
 
         markers = self._boundingBox3DArray_to_markerArray(
@@ -225,7 +225,7 @@ class AvstackBridgedVisualizer(Node):
 
         Args:
             agent_namespace (str): the agent's namespace
-                (ex: "ego" or "agent1")
+                (ex: "ego" or "agent1" or "command_center")
         """
         # initialize the subscriber
         self._tracks_subs[agent_namespace] = self.create_subscription(
@@ -248,7 +248,7 @@ class AvstackBridgedVisualizer(Node):
                 ObjectState objects representing the
                 agent's detections
             agent_namespace (str): the agent's namespace
-                (ex: "ego" or "agent1")
+                (ex: "ego" or "agent1" or "command_center)
         """
 
         # publish the agent's tracks
@@ -282,7 +282,7 @@ class AvstackBridgedVisualizer(Node):
 
         Args:
             agent_namespace (str): the agent's namespace
-                (ex: "ego" or "agent1")
+                (ex: "ego" or "agent1" or "command_center")
         """
         # initialize the publisher
 
@@ -352,7 +352,7 @@ class AvstackBridgedVisualizer(Node):
                 object)
             id (int): a unique integer id for the given marker
             namespace (str): the namespace of the agent
-                (ex: "ego" or "agent1")
+                (ex: "ego" or "agent1" or "command_center")
             color (ColorRGBA): the desired color of each Marker
                 expressed as a ROS2 ColorRGBA message type
 
@@ -411,7 +411,7 @@ class AvstackBridgedVisualizer(Node):
             msg (BoundingBox3DArray): the input
                 BoundingBox3DArray message
             namespace (str): the namespace of the agent
-                (ex: "ego" or "agent1")
+                (ex: "ego" or "agent1" or "command_center")
             color (ColorRGBA): the desired color of each Marker
                 expressed as a ROS2 ColorRGBA message type
 
@@ -457,7 +457,7 @@ class AvstackBridgedVisualizer(Node):
                 object)
             id (int): a unique integer id for the given marker
             namespace (str): the namespace of the agent
-                (ex: "ego" or "agent1")
+                (ex: "ego" or "agent1" or "command_center")
             color (ColorRGBA): the desired color of each Marker
                 expressed as a ROS2 ColorRGBA message type
 
@@ -501,7 +501,7 @@ class AvstackBridgedVisualizer(Node):
             msg (ObjectStateArray): the input
                 ObjectStateArray message
             namespace (str): the namespace of the agent
-                (ex: "ego" or "agent1")
+                (ex: "ego" or "agent1" or "command_center")
             color (ColorRGBA): the desired color of each Marker
                 expressed as a ROS2 ColorRGBA message type
 
@@ -568,7 +568,7 @@ class AvstackBridgedVisualizer(Node):
                 object)
             id (int): a unique integer id for the given marker
             namespace (str): the namespace of the agent
-                (ex: "ego" or "agent1")
+                (ex: "ego" or "agent1" or "command_center")
             color (ColorRGBA): the desired color of each Marker
                 expressed as a ROS2 ColorRGBA message type
 

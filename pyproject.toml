@@ -18,7 +18,8 @@ avstack_bridge = {path="./submodules/avstack-rosbridge/avstack_bridge/", develop
 lib-avstack-core = {path="./submodules/lib-avstack-core", develop=true}
 lib-avstack-api = {path="./submodules/lib-avstack-api", develop=true}
 mate = {path="./submodules/multi-agent-trust-estimator", develop=true}
-opencv-python = "=4.5.5.64"
+# opencv-python = "=4.5.5.64"
+opencv-python = ">=4.3, <4.7"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7"
