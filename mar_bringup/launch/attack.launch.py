@@ -40,7 +40,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             [
                 os.path.join(get_package_share_directory("mar_bringup"), "launch"),
-                "/_vehiclesec_base.launch.py",
+                "/_base.launch.py",
             ]
         ),
         launch_arguments={

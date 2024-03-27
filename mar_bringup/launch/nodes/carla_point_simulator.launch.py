@@ -15,33 +15,31 @@ def generate_launch_description():
         "carla_point_simulator.yml",
     )
 
-    # HACK: this is a bit hacky.....
-    # can we use the launch config variable??
     output_folder = LaunchConfiguration("output_folder")
-    n_infrastructure_agents = LaunchConfiguration("n_infrastructure_agents")
-    n_agents = 10
-    agent_remaps_configs = [
-        LaunchConfiguration(f"agent_{i}_remap", default=f"/agent{i}/detections")
-        for i in range(n_agents)
-    ]
+    # n_static_agents = LaunchConfiguration("n_static_agents")
+    # n_mobile_agents = LaunchConfiguration("n_mobile_agents")
+    # agent_remaps_configs = [
+    #     LaunchConfiguration(f"agent_{i}_remap", default=f"/agent{i}/detections")
+    #     for i in range(n_agents)
+    # ]
 
     return LaunchDescription(
         [
             Node(
                 package="mar_carla_sim",
-                executable="point_simulator",
+                executable="carla_simulator",
                 name="simulator",
                 parameters=[
                     sim_config,
                     {"output_folder": output_folder},
                 ],
                 arguments=["--ros-args", "--log-level", "INFO"],
-                remappings=[
-                    *[
-                        (f"/agent{i}/detections", remap)
-                        for i, remap in enumerate(agent_remaps_configs)
-                    ]
-                ],
+                # remappings=[
+                #     *[
+                #         (f"/agent{i}/detections", remap)
+                #         for i, remap in enumerate(agent_remaps_configs)
+                #     ]
+                # ],
                 on_exit=Shutdown(),
             ),
         ]

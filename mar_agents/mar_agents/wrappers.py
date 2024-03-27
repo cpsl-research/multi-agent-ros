@@ -1,6 +1,6 @@
 from typing import Any
 
-from avstack.config import ALGORITHMS, MODELS
+from avstack.config import MODELS
 
 
 class _Wrapper:
@@ -23,22 +23,22 @@ class SensorWrapper(_Wrapper):
         super().__init__(model, ID, ID_input=[])
 
 
-@ALGORITHMS.register_module()
+@MODELS.register_module()
 class PerceptionWrapper(_Wrapper):
     def __init__(self, algorithm, ID, ID_input, **kwargs) -> None:
-        algorithm = ALGORITHMS.build(algorithm, default_args=kwargs)
+        algorithm = MODELS.build(algorithm, default_args=kwargs)
         super().__init__(algorithm, ID, ID_input)
 
 
-@ALGORITHMS.register_module()
+@MODELS.register_module()
 class TrackingWrapper(_Wrapper):
     def __init__(self, algorithm, ID, ID_input, **kwargs) -> None:
-        algorithm = ALGORITHMS.build(algorithm, default_args=kwargs)
+        algorithm = MODELS.build(algorithm, default_args=kwargs)
         super().__init__(algorithm, ID, ID_input)
 
 
-@ALGORITHMS.register_module()
+@MODELS.register_module()
 class ClusteringWrapper(_Wrapper):
     def __init__(self, algorithm, ID, ID_input, **kwargs) -> None:
-        algorithm = ALGORITHMS.build(algorithm, default_args=kwargs)
+        algorithm = MODELS.build(algorithm, default_args=kwargs)
         super().__init__(algorithm, ID, ID_input)

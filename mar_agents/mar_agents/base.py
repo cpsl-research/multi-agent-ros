@@ -3,6 +3,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from avstack.config import PIPELINE, Config
 from avstack_bridge.detections import DetectionBridge
+from avstack_bridge.objects import ObjectStateBridge
 from avstack_bridge.tracks import TrackBridge
 from rclpy.node import Node
 from ros2node.api import get_node_names
@@ -25,6 +26,7 @@ class BaseAgent(Node):
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
         # bridge converters
+        self.objs_bridge = ObjectStateBridge()
         self.dets_bridge = DetectionBridge()
         self.track_bridge = TrackBridge()
 

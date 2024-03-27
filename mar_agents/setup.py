@@ -25,7 +25,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "agent_passive = mar_agents.agent_passive:main",
+            "agent_passive = mar_agents.agent:main",
             "command_center = mar_agents.command_center:main",
             "command_center_broker = mar_agents.command_center_broker:main"
         ],

@@ -18,7 +18,7 @@ from tf2_ros.transform_listener import TransformListener
 class CommandCenterBroker(Node):
     """The broker is responsible for collating the
     information from the agents before sending it to the command
-    center algorithms to be processed
+    center MODELS to be processed
     """
 
     def __init__(self):

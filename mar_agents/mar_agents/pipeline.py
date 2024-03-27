@@ -1,7 +1,7 @@
 import os
 from typing import Any, Dict, List
 
-from avstack.config import ALGORITHMS, PIPELINE, ConfigDict
+from avstack.config import MODELS, PIPELINE, ConfigDict
 from avstack.geometry import ReferenceFrame
 
 
@@ -18,7 +18,7 @@ class PassiveAgentPipeline:
     ) -> None:
 
         self.perception = {
-            percep.ID: ALGORITHMS.build(
+            percep.ID: MODELS.build(
                 percep,
                 default_args={
                     "name": name,
@@ -28,7 +28,7 @@ class PassiveAgentPipeline:
             for percep in perception
         }
         self.tracking = {
-            tracker.ID: ALGORITHMS.build(
+            tracker.ID: MODELS.build(
                 tracker,
                 default_args={
                     "name": name,
@@ -70,13 +70,13 @@ class CommandCenterPipeline:
     def __init__(
         self,
         clustering: ConfigDict,
-        group_tracking: ConfigDict,
+        tracking: ConfigDict,
         name: str = "command_center",
         output_folder: str = "last_run",
     ) -> None:
-        self.clustering = ALGORITHMS.build(clustering, default_args={"name": name})
-        self.group_tracking = ALGORITHMS.build(
-            group_tracking,
+        self.clustering = MODELS.build(clustering, default_args={"name": name})
+        self.tracking = MODELS.build(
+            tracking,
             default_args={
                 "name": name,
                 "output_folder": os.path.join(output_folder, "tracks"),
@@ -94,11 +94,11 @@ class CommandCenterPipeline:
         **kwds: Any
     ) -> list:
         clusters = self.clustering(objects=tracks_in, frame=frame, timestamp=timestamp)
-        group_tracks = self.group_tracking(
+        tracks = self.tracking(
             clusters=clusters, platform=platform, frame=frame, timestamp=timestamp
         )
-        group_tracks = [track for track in group_tracks if len(track.members) > 0]
+        tracks = [track for track in tracks if len(track.members) > 0]
         # cluster_trusts, agent_trusts = self.trust(
         #     group_tracks=group_tracks, agents=agents, timestamp=timestamp
         # )
-        return group_tracks  # , cluster_trusts, agent_trusts
+        return tracks  # , cluster_trusts, agent_trusts

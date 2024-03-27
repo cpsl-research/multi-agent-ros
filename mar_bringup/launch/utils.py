@@ -14,7 +14,7 @@ def log_launch_metadata(output_folder, context):
     metadata = {
         "n_adversaries": int(l_config["n_adversaries"]),
         "attack_is_coordinated": l_config["attack_is_coordinated"] == "True",
-        "n_infrastructure_agents": int(l_config["n_infrastructure_agents"]),
+        "n_agents": int(l_config["n_agents"]),
     }
     with open(os.path.join(output_folder, meta_file), "w") as f:
         json.dump(metadata, f)
@@ -69,23 +69,17 @@ def attacked(context):
         return False
 
 
-def get_infra_agents(output_folder, context):
-    """Set up the infrastructure agents
-
-    For the vehiclesec experiments, these could be compromised.
-    In the case of compromised agents, the topics will be remapped
-    to the adversaries.
+def get_agents(output_folder, context):
+    """Set up the agents
 
     *** ASSUMPTION: "adversary-i" attacks "agent-i" ***
     """
-    n_infra = int(context.launch_configurations["n_infrastructure_agents"])
-    output_remapping = {
-        i: "tracks" for i in range(1, 1 + n_infra)
-    }  # default is the same
+    n_agents = int(context.launch_configurations["n_agents"])
+    output_remapping = {i: "tracks" for i in range(0, n_agents)}  # default is the same
 
     if attacked(context):
         if context.launch_configurations["attack_is_coordinated"] == "True":
-            for i in range(1, 1 + int(context.launch_configurations["n_adversaries"])):
+            for i in range(0, int(context.launch_configurations["n_adversaries"])):
                 output_remapping[i] = f"/adversary{i}/tracks"
 
     return [
@@ -104,7 +98,7 @@ def get_infra_agents(output_folder, context):
                 "output_folder": output_folder,
             }.items(),
         )
-        for i in range(1, 1 + n_infra)
+        for i in range(0, n_agents)
     ]
 
 
@@ -135,9 +129,7 @@ def get_simulator(output_folder, context):
                 ]
             ),
             launch_arguments={
-                "n_infrastructure_agents": context.launch_configurations[
-                    "n_infrastructure_agents"
-                ],
+                "n_agents": context.launch_configurations["n_agents"],
                 "output_folder": output_folder,
                 **output_remapping,
             }.items(),

@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "point_simulator = mar_carla_sim.point_simulator.nodes:main"
+            "carla_simulator = mar_carla_sim.nodes:main"
         ],
     },
 )

@@ -4,9 +4,10 @@ import os
 import rclpy
 from avstack_msgs.msg import ObjectStateArray
 from rclpy.node import Node
+from sensor_msgs.msg import Image as ImageMsg
+from sensor_msgs.msg import PointCloud2 as LidarMsg
 from tf2_ros import TransformBroadcaster, TransformListener
 from tf2_ros.buffer import Buffer
-from vision_msgs.msg import BoundingBox3DArray
 
 from .loaders import CarlaDatasetLoader
 
@@ -46,7 +47,8 @@ class CarlaPointSimulator(PointSimulator):
         self.publisher_object_gt = self.create_publisher(
             ObjectStateArray, "object_truth", 10
         )
-        self.publisher_agent_dets = {}
+        self.publisher_agent_object_gt = {}
+        self.publisher_agent_data = {}
 
         # callback timers
         timer_period = 1.0 / rt_framerate
@@ -69,7 +71,8 @@ class CarlaPointSimulator(PointSimulator):
         (
             obj_state_array,
             agent_poses,
-            agent_detections,
+            agent_data,
+            agent_objects,
             i_frame,
         ) = self.loader.load_next()
 
@@ -81,14 +84,33 @@ class CarlaPointSimulator(PointSimulator):
             if agent_poses[agent] is not None:
                 self.tf_broadcaster.sendTransform(agent_poses[agent])
 
-        # publish detection information
-        for agent in agent_detections:
-            if agent not in self.publisher_agent_dets:
-                self.publisher_agent_dets[agent] = self.create_publisher(
-                    BoundingBox3DArray, f"{agent}/detections", 10
+        # publish agent sensor data
+        for agent in agent_data:
+            if agent not in self.publisher_agent_data:
+                self.publisher_agent_data[agent] = {}
+            for sensor in agent_data[agent]:
+                if sensor not in self.publisher_agent_data[agent]:
+                    if "camera" in sensor:
+                        msg_type = ImageMsg
+                    elif "lidar" in sensor:
+                        msg_type = LidarMsg
+                    else:
+                        raise ValueError(sensor)
+                    self.publisher_agent_data[agent][sensor] = self.create_publisher(
+                        msg_type, f"{agent}/{sensor}", 10
+                    )
+                self.publisher_agent_data[agent][sensor].publish(
+                    agent_data[agent][sensor]
                 )
-            if agent_detections[agent] is not None:
-                self.publisher_agent_dets[agent].publish(agent_detections[agent])
+
+        # publish object information in gent view
+        for agent in agent_objects:
+            if agent not in self.publisher_agent_object_gt:
+                self.publisher_agent_object_gt[agent] = self.create_publisher(
+                    ObjectStateArray, f"{agent}/gt_objects", 10
+                )
+            if agent_objects[agent] is not None:
+                self.publisher_agent_object_gt[agent].publish(agent_objects[agent])
 
         # save index-to-frame map
         with open(os.path.join(self.output_folder, "idx_to_frame_map.txt"), "a") as f:
