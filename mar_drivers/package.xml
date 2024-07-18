@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>mar_bringup</name>
+  <name>mar_drivers</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
   <maintainer email="spencer.hallyburton@duke.edu">spencer</maintainer>
@@ -9,11 +9,7 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>mar_carla_sim</exec_depend>
-  <exec_depend>mar_agents</exec_depend>
-  <exec_depend>mar_viz</exec_depend>
-
-  <exec_depend>viz_camera</exec_depend>
+  <exec_depend>spinnaker_camera_driver</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

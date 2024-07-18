@@ -13,3 +13,6 @@
 [submodule "submodules/flirtools"]
 	path = submodules/flirtools
 	url = https://github.com/cpsl-research/flirtools.git
+[submodule "submodules/sensor_visualizers"]
+	path = submodules/sensor_visualizers
+	url = https://github.com/cpsl-research/sensor_visualizers.git
