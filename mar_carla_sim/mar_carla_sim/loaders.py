@@ -75,7 +75,7 @@ class CarlaDatasetLoader:
                     try:
                         agent_objs = self.scene_dataset.get_objects(
                             frame=self.i_frame,
-                            sensor="camera-0",
+                            sensor="lidar-0",
                             agent=agent.ID,
                             max_dist=60,
                         )
@@ -121,7 +121,7 @@ class CarlaDatasetLoader:
                         else:
                             sensor_data = None
                         if sensor_data is not None:
-                            sensor = sensor.replace("-", "_")
+                            sensor = sensor.replace("-", "")
                             data[sensor] = sensor_data
                     agent_data[agent_name] = data
 

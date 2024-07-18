@@ -99,9 +99,11 @@ class CarlaPointSimulator(PointSimulator):
                     self.publisher_agent_data[agent][sensor] = self.create_publisher(
                         msg_type, f"{agent}/{sensor}", 10
                     )
-                self.publisher_agent_data[agent][sensor].publish(
-                    agent_data[agent][sensor]
-                )
+                # only publish when data was captured
+                if agent_data[agent][sensor]:
+                    self.publisher_agent_data[agent][sensor].publish(
+                        agent_data[agent][sensor]
+                    )
 
         # publish object information in gent view
         for agent in agent_objects:
@@ -110,7 +112,8 @@ class CarlaPointSimulator(PointSimulator):
                     ObjectStateArray, f"{agent}/gt_objects", 10
                 )
             if agent_objects[agent] is not None:
-                self.publisher_agent_object_gt[agent].publish(agent_objects[agent])
+                if agent_objects[agent]:
+                    self.publisher_agent_object_gt[agent].publish(agent_objects[agent])
 
         # save index-to-frame map
         with open(os.path.join(self.output_folder, "idx_to_frame_map.txt"), "a") as f:

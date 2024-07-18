@@ -123,8 +123,7 @@ class AvstackBridgedVisualizer(Node):
         # check for new agents
         for name, namespace in node_names_and_namespaces:
             if (
-                ("ego" in namespace)
-                or ("agent" in namespace)
+                ("agent" in namespace)
                 or ("command_center" in namespace)
             ):
                 if namespace not in self._agent_namespaces:

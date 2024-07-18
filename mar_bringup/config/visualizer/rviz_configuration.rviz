@@ -54,16 +54,16 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: false
     - Class: rviz_default_plugins/MarkerArray
-      Enabled: true
+      Enabled: false
       Name: MarkerArray
       Namespaces:
-        /ego: true
+        /agent0: true
       Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /ego/markers/detections
+        Value: /agent0/markers/detections
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
@@ -75,7 +75,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /ego/markers/tracks
+        Value: /agent0/markers/tracks
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
@@ -100,7 +100,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /ego/markers/agent_pose
+        Value: /agent0/markers/agent_pose
       Value: false
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
@@ -109,8 +109,6 @@ Visualization Manager:
         /agent0: true
         /agent1: true
         /agent2: true
-        /agent3: true
-        /ego: true
       Topic:
         Depth: 5
         Durability Policy: Volatile
