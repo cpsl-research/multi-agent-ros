@@ -16,12 +16,6 @@ def generate_launch_description():
     )
 
     output_folder = LaunchConfiguration("output_folder")
-    # n_static_agents = LaunchConfiguration("n_static_agents")
-    # n_mobile_agents = LaunchConfiguration("n_mobile_agents")
-    # agent_remaps_configs = [
-    #     LaunchConfiguration(f"agent_{i}_remap", default=f"/agent{i}/detections")
-    #     for i in range(n_agents)
-    # ]
 
     return LaunchDescription(
         [

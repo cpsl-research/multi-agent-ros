@@ -5,8 +5,6 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     agent_name = LaunchConfiguration("agent_name")
-    track_new_topic = LaunchConfiguration("track_new_topic", default="tracks")
-    output_folder = LaunchConfiguration("output_folder")
 
     # ==================================
     # spawn up all agent nodes
@@ -23,8 +21,8 @@ def generate_launch_description():
 
     # tracking
     track_node = Node(
-        package="mar_agents",
-        executable="box_tracker",
+        package="tracking",
+        executable="boxtracker3d",
         namespace=agent_name,
         name="tracker",
         arguments=["--ros-args", "--log-level", "INFO"],
@@ -32,8 +30,8 @@ def generate_launch_description():
 
     # fov estimation
     fov_node = Node(
-        package="mar_agents",
-        executable="fov_estimator",
+        package="fov_estimator",
+        executable="lidar_concave_hull",
         namespace=agent_name,
         name="fov_estimator",
         arguments=["--ros-args", "--log-level", "INFO"],

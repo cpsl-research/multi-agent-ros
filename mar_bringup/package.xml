@@ -13,6 +13,10 @@
   <exec_depend>mar_agents</exec_depend>
   <exec_depend>mar_viz</exec_depend>
 
+  <exec_depend>percep_lidar</exec_depend>
+  <exec_depend>percep_camera</exec_depend>
+  <exec_depend>fov_estimator</exec_depend>
+  <exec_depend>tracking</exec_depend>
   <exec_depend>viz_camera</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
