@@ -16,6 +16,9 @@ def generate_launch_description():
         executable="mmdetection3d",
         namespace=agent_name,
         name="perception",
+        remappings=[
+            ("point_cloud", "lidar0"),
+        ],
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 
@@ -34,6 +37,9 @@ def generate_launch_description():
         executable="lidar_concave_hull",
         namespace=agent_name,
         name="fov_estimator",
+        remappings=[
+            ("point_cloud", "lidar0"),
+        ],
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 
