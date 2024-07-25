@@ -75,7 +75,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /agent0/agent0_lidar0
+        Value: /agent0/lidar0
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -109,7 +109,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /agent1/agent1_lidar0
+        Value: /agent1/lidar0
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -143,7 +143,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /agent2/agent2_lidar0
+        Value: /agent2/lidar0
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -177,7 +177,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /agent3/agent3_lidar0
+        Value: /agent3/lidar0
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -196,6 +196,22 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /object_truth
+      Value: true
+    - Alpha: 1
+      Class: avstack_msgs_rviz_plugins/BoxTrackArray
+      Color: 255; 255; 0
+      Enabled: true
+      Line Width: 0.05000000074505806
+      Name: BoxTrackArray
+      Namespaces:
+        box_track: true
+      Only Edge: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /agent0/tracks_3d
       Value: true
   Enabled: true
   Global Options:
@@ -243,7 +259,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 86.22513580322266
+      Distance: 78.41521453857422
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -258,10 +274,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6847979426383972
+      Pitch: 0.9847968816757202
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.362192153930664
+      Yaw: 3.767185688018799
     Saved: ~
 Window Geometry:
   Displays:
