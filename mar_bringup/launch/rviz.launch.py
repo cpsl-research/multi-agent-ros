@@ -14,6 +14,7 @@ def generate_launch_description():
                 namespace="",
                 executable="rviz2",
                 name="rviz2",
+                parameters=[{"use_sim_time": True}],
                 arguments=[
                     "-d",
                     os.path.join(
