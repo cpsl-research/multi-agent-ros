@@ -9,8 +9,8 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>mar_carla_sim</exec_depend>
   <exec_depend>mar_agents</exec_depend>
+  <exec_depend>tf2_sensor_msgs</exec_depend>
 
   <exec_depend>percep_lidar</exec_depend>
   <exec_depend>percep_camera</exec_depend>

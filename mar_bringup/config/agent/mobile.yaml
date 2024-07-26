@@ -1,0 +1,6 @@
+/**:
+  ros__parameters:
+    debug: False
+    # perception parameters
+    model: pointpillars
+    dataset: carla-vehicle

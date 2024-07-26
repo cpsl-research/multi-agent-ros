@@ -1,3 +1,0 @@
-/command_center/command_center_broker:
-  ros__parameters:
-    debug: False

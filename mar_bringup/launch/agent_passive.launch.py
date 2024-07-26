@@ -1,14 +1,28 @@
+import os
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 from launch_ros.actions import Node
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    OpaqueFunction,
+)
 
 
 def generate_launch_description():
     agent_name = LaunchConfiguration("agent_name")
+    agent_type_config = LaunchConfiguration("agent_type_config")
 
-    # ==================================
-    # spawn up all agent nodes
-    # ==================================
+    agent_config = PathJoinSubstitution(
+        [
+            get_package_share_directory("mar_bringup"),
+            "config",
+            "agent",
+            agent_type_config,
+        ]
+    )
 
     # perception
     percep_node = Node(
@@ -16,6 +30,7 @@ def generate_launch_description():
         executable="mmdetection3d",
         namespace=agent_name,
         name="perception",
+        parameters=[agent_config],
         remappings=[
             ("point_cloud", "lidar0"),
         ],
@@ -27,7 +42,8 @@ def generate_launch_description():
         package="tracking",
         executable="boxtracker3d",
         namespace=agent_name,
-        name="tracker",
+        name="tracking",
+        parameters=[agent_config],
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 
@@ -37,6 +53,7 @@ def generate_launch_description():
         executable="lidar_concave_hull",
         namespace=agent_name,
         name="fov_estimator",
+        parameters=[agent_config],
         remappings=[
             ("point_cloud", "lidar0"),
         ],
