@@ -14,7 +14,8 @@ def get_agents(context):
     """Set up the agents"""
     # HACK: fix the static and mobile agents mappings
 
-    n_agents = int(context.launch_configurations["n_agents"])
+    agent_name = str(context.launch_configurations["agent_name"])
+    agent_type = str(context.launch_configurations["agent_type"])
 
     return [
         IncludeLaunchDescription(
@@ -28,11 +29,10 @@ def get_agents(context):
                 ]
             ),
             launch_arguments={
-                "agent_name": f"agent{i}",
-                "agent_type": "mobile.yaml" if i == 0 else "static.yaml",
+                "agent_name": agent_name,
+                "agent_type": agent_type,
             }.items(),
         )
-        for i in range(0, n_agents)
     ]
 
 
@@ -60,7 +60,10 @@ def get_viz(context):
 
 
 def generate_launch_description():
-    n_agents_launch_arg = DeclareLaunchArgument("n_agents", default_value="4")
+    agent_name_launch_arg = DeclareLaunchArgument("agent_name", default_value="agent0")
+    agent_type_launch_arg = DeclareLaunchArgument(
+        "agent_type", default_value="mobile.yaml"
+    )
     viz_config_launch_arg = DeclareLaunchArgument(
         "viz_config", default_value="agent0_config.rviz"
     )
@@ -70,9 +73,10 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            n_agents_launch_arg,
-            viz_config_launch_arg,
+            agent_name_launch_arg,
+            agent_type_launch_arg,
             agent_nodes,
+            viz_config_launch_arg,
             viz_node,
         ]
     )

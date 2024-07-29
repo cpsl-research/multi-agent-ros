@@ -1,26 +1,19 @@
-import os
-
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, TextSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
-from launch.actions import (
-    DeclareLaunchArgument,
-    IncludeLaunchDescription,
-    OpaqueFunction,
-)
 
 
 def generate_launch_description():
     agent_name = LaunchConfiguration("agent_name")
-    agent_type_config = LaunchConfiguration("agent_type_config")
+    agent_type = LaunchConfiguration("agent_type")
 
     agent_config = PathJoinSubstitution(
         [
             get_package_share_directory("mar_bringup"),
             "config",
             "agent",
-            agent_type_config,
+            agent_type,
         ]
     )
 

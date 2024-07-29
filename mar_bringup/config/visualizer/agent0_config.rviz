@@ -1,8 +1,3 @@
-# Agent 0 color: 249; 240; 107
-# Agent 1 color: 205; 171; 143
-# Agent 2 color: 220; 138; 221
-# Agent 3 color: 153; 193; 241
-
 Panels:
   - Class: rviz_common/Displays
     Help Height: 78
@@ -97,7 +92,7 @@ Visualization Manager:
       Color: 205; 171; 143
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 0.9370474815368652
@@ -118,7 +113,7 @@ Visualization Manager:
         Value: /agent1/lidar0
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -131,7 +126,7 @@ Visualization Manager:
       Color: 220; 138; 221
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 0.9512510895729065
@@ -152,7 +147,7 @@ Visualization Manager:
         Value: /agent2/lidar0
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -165,7 +160,7 @@ Visualization Manager:
       Color: 153; 193; 241
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 0.9461769461631775
@@ -186,7 +181,7 @@ Visualization Manager:
         Value: /agent3/lidar0
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Class: avstack_msgs_rviz_plugins/ObjectStateArray
       Color: 255; 255; 255
@@ -223,11 +218,11 @@ Visualization Manager:
     - Alpha: 1
       Class: vision_msgs_rviz_plugins/Detection3DArray
       ConfigPath: ""
-      Enabled: true
+      Enabled: false
       Line Width: 0.05000000074505806
       Name: Agent1-Detections
       Namespaces:
-        bounding_box: true
+        {}
       Only Edge: false
       Show Score: false
       Topic:
@@ -236,15 +231,15 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /agent1/detections_3d
-      Value: true
+      Value: false
     - Alpha: 1
       Class: vision_msgs_rviz_plugins/Detection3DArray
       ConfigPath: ""
-      Enabled: true
+      Enabled: false
       Line Width: 0.05000000074505806
       Name: Agent2-Detections
       Namespaces:
-        bounding_box: true
+        {}
       Only Edge: false
       Show Score: false
       Topic:
@@ -253,15 +248,15 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /agent2/detections_3d
-      Value: true
+      Value: false
     - Alpha: 1
       Class: vision_msgs_rviz_plugins/Detection3DArray
       ConfigPath: ""
-      Enabled: true
+      Enabled: false
       Line Width: 0.05000000074505806
       Name: Agent3-Detections
       Namespaces:
-        bounding_box: true
+        {}
       Only Edge: false
       Show Score: false
       Topic:
@@ -270,7 +265,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /agent3/detections_3d
-      Value: true
+      Value: false
     - Alpha: 1
       Class: avstack_msgs_rviz_plugins/BoxTrackArray
       Color: 249; 240; 107
@@ -278,7 +273,7 @@ Visualization Manager:
       Line Width: 0.05000000074505806
       Name: Agent0-Tracks
       Namespaces:
-        {}
+        box_track: true
       Only Edge: false
       Topic:
         Depth: 5
@@ -290,7 +285,7 @@ Visualization Manager:
     - Alpha: 1
       Class: avstack_msgs_rviz_plugins/BoxTrackArray
       Color: 205; 171; 143
-      Enabled: true
+      Enabled: false
       Line Width: 0.05000000074505806
       Name: Agent1-Tracks
       Namespaces:
@@ -302,11 +297,11 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /agent1/tracks_3d
-      Value: true
+      Value: false
     - Alpha: 1
       Class: avstack_msgs_rviz_plugins/BoxTrackArray
       Color: 220; 138; 221
-      Enabled: true
+      Enabled: false
       Line Width: 0.05000000074505806
       Name: Agent2-Tracks
       Namespaces:
@@ -318,11 +313,11 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /agent0/tracks_3d
-      Value: true
+      Value: false
     - Alpha: 1
       Class: avstack_msgs_rviz_plugins/BoxTrackArray
       Color: 153; 193; 241
-      Enabled: true
+      Enabled: false
       Line Width: 0.05000000074505806
       Name: Agent3-Tracks
       Namespaces:
@@ -334,7 +329,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /agent3/tracks_3d
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz_default_plugins/Polygon
       Color: 249; 240; 107
@@ -351,7 +346,7 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz_default_plugins/Polygon
       Color: 205; 171; 143
-      Enabled: true
+      Enabled: false
       Name: Agent1-FOV
       Topic:
         Depth: 5
@@ -360,11 +355,11 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /agent1/fov
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz_default_plugins/Polygon
       Color: 220; 138; 221
-      Enabled: true
+      Enabled: false
       Name: Agent2-FOV
       Topic:
         Depth: 5
@@ -373,11 +368,11 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /agent2/fov
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz_default_plugins/Polygon
       Color: 153; 193; 241
-      Enabled: true
+      Enabled: false
       Name: Agent3-FOV
       Topic:
         Depth: 5
@@ -386,7 +381,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /agent3/fov
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -433,7 +428,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 196.0157928466797
+      Distance: 42.54545593261719
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -448,10 +443,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9647969007492065
+      Pitch: 0.5347968339920044
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.682124614715576
+      Yaw: 3.9471194744110107
     Saved: ~
 Window Geometry:
   Displays:
