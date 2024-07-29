@@ -1,5 +1,3 @@
-import os
-
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
@@ -8,31 +6,34 @@ from launch.actions import (
     OpaqueFunction,
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import PathJoinSubstitution
 
 
 def get_agents(context):
     """Set up the agents"""
-    # HACK: fix the static and mobile agents mappings
-
-    agent_name = str(context.launch_configurations["agent_name"])
-    agent_type = str(context.launch_configurations["agent_type"])
+    n_agents = int(context.launch_configurations["n_agents"])
 
     return [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 [
-                    os.path.join(
-                        get_package_share_directory("mar_bringup"),
-                        "launch",
-                        "agent_passive.launch.py",
+                    PathJoinSubstitution(
+                        [
+                            get_package_share_directory("mar_bringup"),
+                            "launch",
+                            "carla_trust_experiments",
+                            "nodes",
+                            "agent_passive.launch.py",
+                        ]
                     ),
                 ]
             ),
             launch_arguments={
-                "agent_name": agent_name,
-                "agent_type": agent_type,
+                "agent_name": f"agent{i}",
+                "agent_type": "mobile.yaml" if i == 0 else "static.yaml",
             }.items(),
         )
+        for i in range(0, n_agents)
     ]
 
 
@@ -45,10 +46,14 @@ def get_viz(context):
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 [
-                    os.path.join(
-                        get_package_share_directory("mar_bringup"),
-                        "launch",
-                        "rviz.launch.py",
+                    PathJoinSubstitution(
+                        [
+                            get_package_share_directory("mar_bringup"),
+                            "launch",
+                            "carla_trust_experiments",
+                            "nodes",
+                            "rviz.launch.py",
+                        ]
                     ),
                 ]
             ),
@@ -60,12 +65,9 @@ def get_viz(context):
 
 
 def generate_launch_description():
-    agent_name_launch_arg = DeclareLaunchArgument("agent_name", default_value="agent0")
-    agent_type_launch_arg = DeclareLaunchArgument(
-        "agent_type", default_value="mobile.yaml"
-    )
+    n_agents_launch_arg = DeclareLaunchArgument("n_agents", default_value="4")
     viz_config_launch_arg = DeclareLaunchArgument(
-        "viz_config", default_value="agent0_config.rviz"
+        "viz_config", default_value="multi_agent_config.rviz"
     )
 
     agent_nodes = OpaqueFunction(function=get_agents)
@@ -73,10 +75,9 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            agent_name_launch_arg,
-            agent_type_launch_arg,
-            agent_nodes,
+            n_agents_launch_arg,
             viz_config_launch_arg,
+            agent_nodes,
             viz_node,
         ]
     )

@@ -2,5 +2,6 @@
   ros__parameters:
     debug: False
     # perception parameters
-    model: pointpillars
-    dataset: carla-infrastructure
+    perception_model: pointpillars
+    perception_dataset: carla-infrastructure
+    tracking_in_global: False
