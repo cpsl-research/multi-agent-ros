@@ -1,0 +1,7 @@
+/**:
+  ros__parameters:
+    debug: False
+    # perception parameters
+    perception_model: pointpillars
+    perception_dataset: carla-vehicle
+    tracking_in_global: True

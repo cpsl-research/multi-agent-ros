@@ -25,15 +25,15 @@ class PassiveAgent(BaseAgent):
 
         # agents subscribe to sensor data
         self.subscriber_sensors = {
-            "camera_0": self.create_subscription(
+            "camera0": self.create_subscription(
                 ImageMsg,
-                "camera_0",
+                "camera0",
                 self.img_callback,
                 10,
             ),
-            "lidar_0": self.create_subscription(
+            "lidar0": self.create_subscription(
                 LidarMsg,
-                "lidar_0",
+                "lidar0",
                 self.pc_callback,
                 10,
             ),
@@ -55,6 +55,7 @@ class PassiveAgent(BaseAgent):
             header=msg.header,
             default_type=BoxTrackArray,
         )
+        msg_track_2 = self.track_bridge.avstack_to_tracks(gt_objs, header=msg.header)
         self.publisher_tracks.publish(msg_track)
 
     def img_callback(self, msg):

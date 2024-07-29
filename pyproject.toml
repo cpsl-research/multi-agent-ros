@@ -15,18 +15,20 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "~3.10"
 avstack_bridge = {path="./submodules/avstack-rosbridge/avstack_bridge/", develop=true}
-lib-avstack-core = {path="./submodules/lib-avstack-core", develop=true}
+lib-avstack-core = {path="./submodules/lib-avstack-core", extras=["percep"], develop=true}
 lib-avstack-api = {path="./submodules/lib-avstack-api", develop=true}
 mate = {path="./submodules/multi-agent-trust-estimator", develop=true}
+flirtools = {path="./submodules/flirtools", develop=true}
 # opencv-python = "=4.5.5.64"
 opencv-python = ">4.7, <4.9.0.80"
 ros2_numpy = "=0.0.2"
 
 [tool.poetry.group.test.dependencies]
+snakeviz="^2.1.1"
 pytest = "^7"
 pytest-cov = "^4"
 bandit = "^1.7"
-black = "~22.12.0"
+black = {extras = ["jupyter"], version = "~22.12.0"}
 mypy = "^0"
 isort = "^5.11"
 flake8 = "^5.0"

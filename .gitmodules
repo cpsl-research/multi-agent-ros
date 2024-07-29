@@ -10,3 +10,15 @@
 [submodule "submodules/lib-avstack-core"]
 	path = submodules/lib-avstack-core
 	url = https://github.com/avstack-lab/lib-avstack-core
+[submodule "submodules/flirtools"]
+	path = submodules/flirtools
+	url = https://github.com/cpsl-research/flirtools.git
+[submodule "submodules/sensor-visualizers-ros"]
+	path = submodules/sensor-visualizers-ros
+	url = https://github.com/cpsl-research/sensor-visualizers-ros.git
+[submodule "submodules/perception-ros"]
+	path = submodules/perception-ros
+	url = https://github.com/cpsl-research/perception-ros
+[submodule "submodules/tracking-ros"]
+	path = submodules/tracking-ros
+	url = https://github.com/cpsl-research/tracking-ros
