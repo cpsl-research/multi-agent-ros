@@ -23,7 +23,7 @@ def get_agents(context):
                             "launch",
                             "carla_trust_experiments",
                             "nodes",
-                            "agent_passive.launch.py",
+                            "cte_agent_passive.launch.py",
                         ]
                     ),
                 ]
@@ -34,6 +34,32 @@ def get_agents(context):
             }.items(),
         )
         for i in range(0, n_agents)
+    ]
+
+
+def get_command_center(context):
+    """Set up the command center"""
+    n_agents = int(context.launch_configurations["n_agents"])
+
+    return [
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                [
+                    PathJoinSubstitution(
+                        [
+                            get_package_share_directory("mar_bringup"),
+                            "launch",
+                            "carla_trust_experiments",
+                            "nodes",
+                            "cte_command_center.launch.py",
+                        ]
+                    )
+                ]
+            ),
+            launch_arguments={
+                "n_agents": str(n_agents),
+            }.items(),
+        )
     ]
 
 
@@ -52,7 +78,7 @@ def get_viz(context):
                             "launch",
                             "carla_trust_experiments",
                             "nodes",
-                            "rviz.launch.py",
+                            "cte_rviz.launch.py",
                         ]
                     ),
                 ]
@@ -71,6 +97,7 @@ def generate_launch_description():
     )
 
     agent_nodes = OpaqueFunction(function=get_agents)
+    cc_node = OpaqueFunction(function=get_command_center)
     viz_node = OpaqueFunction(function=get_viz)
 
     return LaunchDescription(
@@ -78,6 +105,7 @@ def generate_launch_description():
             n_agents_launch_arg,
             viz_config_launch_arg,
             agent_nodes,
+            cc_node,
             viz_node,
         ]
     )

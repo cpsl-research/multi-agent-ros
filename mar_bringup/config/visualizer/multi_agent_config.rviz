@@ -3,8 +3,7 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /Global Options1
+      Expanded: ~
       Splitter Ratio: 0.5470588207244873
     Tree Height: 719
   - Class: rviz_common/Selection
@@ -24,7 +23,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: Agent1-Lidar0
 Visualization Manager:
   Class: ""
   Displays:
@@ -273,7 +272,7 @@ Visualization Manager:
       Line Width: 0.05000000074505806
       Name: Agent0-Tracks
       Namespaces:
-        {}
+        box_track: true
       Only Edge: false
       Topic:
         Depth: 5
@@ -289,7 +288,7 @@ Visualization Manager:
       Line Width: 0.05000000074505806
       Name: Agent1-Tracks
       Namespaces:
-        {}
+        box_track: true
       Only Edge: false
       Topic:
         Depth: 5
@@ -305,7 +304,7 @@ Visualization Manager:
       Line Width: 0.05000000074505806
       Name: Agent2-Tracks
       Namespaces:
-        {}
+        box_track: true
       Only Edge: false
       Topic:
         Depth: 5
@@ -321,7 +320,7 @@ Visualization Manager:
       Line Width: 0.05000000074505806
       Name: Agent3-Tracks
       Namespaces:
-        {}
+        box_track: true
       Only Edge: false
       Topic:
         Depth: 5
@@ -382,6 +381,22 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /agent3/fov
       Value: true
+    - Alpha: 1
+      Class: avstack_msgs_rviz_plugins/BoxTrackArray
+      Color: 0; 128; 0
+      Enabled: true
+      Line Width: 0.05000000074505806
+      Name: CommandCenter-Tracks
+      Namespaces:
+        box_track: true
+      Only Edge: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /command_center/tracks_3d
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -428,7 +443,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 196.0157928466797
+      Distance: 91.44993591308594
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -443,10 +458,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9647969007492065
+      Pitch: 0.664796769618988
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.682124614715576
+      Yaw: 3.8321166038513184
     Saved: ~
 Window Geometry:
   Displays:

@@ -27,7 +27,7 @@ def get_agents(context):
                             "launch",
                             "carla_trust_experiments",
                             "nodes",
-                            "agent_passive.launch.py",
+                            "cte_agent_passive.launch.py",
                         ]
                     ),
                 ]
@@ -56,7 +56,7 @@ def get_viz(context):
                             "launch",
                             "carla_trust_experiments",
                             "nodes",
-                            "rviz.launch.py",
+                            "cte_rviz.launch.py",
                         ]
                     ),
                 ]
