@@ -1,9 +1,6 @@
 [submodule "submodules/avstack-rosbridge"]
 	path = submodules/avstack-rosbridge
 	url = https://github.com/avstack-lab/avstack-rosbridge
-[submodule "submodules/multi-agent-trust-estimator"]
-	path = submodules/multi-agent-trust-estimator
-	url = https://github.com/cpsl-research/multi-agent-trust-estimator
 [submodule "submodules/lib-avstack-api"]
 	path = submodules/lib-avstack-api
 	url = https://github.com/avstack-lab/lib-avstack-api
@@ -22,3 +19,6 @@
 [submodule "submodules/tracking-ros"]
 	path = submodules/tracking-ros
 	url = https://github.com/cpsl-research/tracking-ros
+[submodule "submodules/trust-ros"]
+	path = submodules/trust-ros
+	url = https://github.com/cpsl-research/trust-ros
