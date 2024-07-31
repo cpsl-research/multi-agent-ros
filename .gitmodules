@@ -22,3 +22,6 @@
 [submodule "submodules/trust-ros"]
 	path = submodules/trust-ros
 	url = https://github.com/cpsl-research/trust-ros
+[submodule "submodules/multi-agent-trust-estimator"]
+	path = submodules/multi-agent-trust-estimator
+	url = https://github.com/cpsl-research/multi-agent-trust-estimator

@@ -7,23 +7,22 @@ from launch_ros.actions import Node
 def generate_launch_description():
     n_agents = LaunchConfiguration("n_agents")
 
-    cc_config = PathJoinSubstitution(
+    mate_config = PathJoinSubstitution(
         [
             get_package_share_directory("mar_bringup"),
             "config",
-            "command_center",
-            "track_fusion.yaml",
+            "trust",
+            "mate.yaml",
         ]
     )
 
-    # sensor fusion
-    cc_fusion_node = Node(
-        package="tracking",
-        executable="multi_platform_boxtracker3d",
-        namespace="command_center",
-        name="tracker",
+    cc_trust_node = Node(
+        package="trust",
+        executable="mate",
+        namespace="mate",
+        name="trust_estimator",
         parameters=[
-            cc_config,
+            mate_config,
             {
                 "n_agents": n_agents,
             },
@@ -31,4 +30,5 @@ def generate_launch_description():
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 
-    return LaunchDescription([cc_fusion_node])
+
+    return LaunchDescription([cc_trust_node])

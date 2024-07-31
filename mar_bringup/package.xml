@@ -16,6 +16,7 @@
   <exec_depend>percep_camera</exec_depend>
   <exec_depend>fov_estimator</exec_depend>
   <exec_depend>tracking</exec_depend>
+  <exec_depend>trust</exec_depend>
   <exec_depend>viz_camera</exec_depend>
 
   <exec_depend>avstack_msgs</exec_depend>
