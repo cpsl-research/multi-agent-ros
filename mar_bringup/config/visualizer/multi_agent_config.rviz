@@ -46,6 +46,22 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 1
+      Class: avstack_msgs_rviz_plugins/ObjectStateArray
+      Color: 255; 255; 255
+      Enabled: true
+      Line Width: 0.10000000149011612
+      Name: Object Truth
+      Namespaces:
+        {}
+      Only Edge: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /object_truth
+      Value: true
+    - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
         Max Value: 4.520176410675049
@@ -180,22 +196,6 @@ Visualization Manager:
         Value: /agent3/lidar0
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
-    - Alpha: 1
-      Class: avstack_msgs_rviz_plugins/ObjectStateArray
-      Color: 255; 255; 255
-      Enabled: true
-      Line Width: 0.10000000149011612
-      Name: ObjectStateArray
-      Namespaces:
-        {}
-      Only Edge: true
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /object_truth
       Value: true
     - Alpha: 1
       Class: vision_msgs_rviz_plugins/Detection3DArray

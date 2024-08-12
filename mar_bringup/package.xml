@@ -18,6 +18,7 @@
   <exec_depend>tracking</exec_depend>
   <exec_depend>trust</exec_depend>
   <exec_depend>viz_camera</exec_depend>
+  <exec_depend>plotjuggler</exec_depend>
 
   <exec_depend>avstack_msgs</exec_depend>
   <exec_depend>avstack_msgs_rviz_plugins</exec_depend>

@@ -27,4 +27,10 @@ def generate_launch_description():
         arguments=["-d", viz_param],
     )
 
-    return LaunchDescription([viz_config_launch_arg, viz_node])
+    rqt_node = Node(
+        package="rqt_graph",
+        namespace="",
+        executable="rqt_graph",
+    )
+
+    return LaunchDescription([viz_config_launch_arg, viz_node, rqt_node])
