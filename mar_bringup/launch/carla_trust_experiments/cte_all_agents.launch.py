@@ -1,14 +1,13 @@
 import os
 import sys
+
 from launch import LaunchDescription
-from launch.actions import (
-    DeclareLaunchArgument,
-    OpaqueFunction,
-)
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
+
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
-from utils import get_agents, get_viz, get_command_center, get_trust_estimator
+from utils import get_agents, get_command_center, get_trust_estimator, get_viz
 
 
 def generate_launch_description():
