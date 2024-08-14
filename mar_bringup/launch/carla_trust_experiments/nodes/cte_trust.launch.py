@@ -7,22 +7,31 @@ from launch_ros.actions import Node
 def generate_launch_description():
     n_agents = LaunchConfiguration("n_agents")
 
-    mate_config = PathJoinSubstitution(
+    trust_measurement_config = PathJoinSubstitution(
         [
             get_package_share_directory("mar_bringup"),
             "config",
             "trust",
-            "mate.yaml",
+            "trust_updater.yaml",
         ]
     )
 
-    cc_trust_node = Node(
+    trust_updater_config = PathJoinSubstitution(
+        [
+            get_package_share_directory("mar_bringup"),
+            "config",
+            "trust",
+            "trust_updater.yaml",
+        ]
+    )
+
+    trust_measurement_node = Node(
         package="trust",
-        executable="mate",
+        executable="measurement",
         namespace="mate",
-        name="trust_estimator",
+        name="trust_measurement",
         parameters=[
-            mate_config,
+            trust_measurement_config,
             {
                 "n_agents": n_agents,
             },
@@ -30,4 +39,18 @@ def generate_launch_description():
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 
-    return LaunchDescription([cc_trust_node])
+    trust_updater_node = Node(
+        package="trust",
+        executable="updater",
+        namespace="mate",
+        name="trust_updater",
+        parameters=[
+            trust_updater_config,
+            {
+                "n_agents": n_agents,
+            },
+        ],
+        arguments=["--ros-args", "--log-level", "INFO"],
+    )
+
+    return LaunchDescription([trust_measurement_node, trust_updater_node])
