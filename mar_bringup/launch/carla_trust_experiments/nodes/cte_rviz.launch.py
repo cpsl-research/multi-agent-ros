@@ -27,11 +27,4 @@ def generate_launch_description():
         arguments=["-d", rviz_param],
     )
 
-    trust_viz_node = Node(
-        package="trust",
-        namespace="mate",
-        executable="visualizer",
-        name="trust_visualizer",
-    )
-
-    return LaunchDescription([rviz_config_launch_arg, rviz_node, trust_viz_node])
+    return LaunchDescription([rviz_config_launch_arg, rviz_node])

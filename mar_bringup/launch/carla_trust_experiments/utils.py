@@ -1,6 +1,5 @@
 from ament_index_python.packages import get_package_share_directory
 from launch.actions import IncludeLaunchDescription
-from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution
 
@@ -62,7 +61,6 @@ def get_command_center(context):
 def get_trust_estimator(context):
     """Set up the trust estimator"""
     n_agents = int(context.launch_configurations["n_agents"])
-    trust_enabled = context.launch_configurations["trust_enabled"]
 
     return [
         IncludeLaunchDescription(
@@ -74,7 +72,7 @@ def get_trust_estimator(context):
                             "launch",
                             "carla_trust_experiments",
                             "nodes",
-                            "cte_trust.launch.py",
+                            "cte_trust_estimator.launch.py",
                         ]
                     )
                 ]
@@ -82,7 +80,27 @@ def get_trust_estimator(context):
             launch_arguments={
                 "n_agents": str(n_agents),
             }.items(),
-            condition=IfCondition(trust_enabled),  # only on this condition
+        )
+    ]
+
+
+def get_trust_viz(context):
+    """Set up the trust visualizer"""
+    return [
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                [
+                    PathJoinSubstitution(
+                        [
+                            get_package_share_directory("mar_bringup"),
+                            "launch",
+                            "carla_trust_experiments",
+                            "nodes",
+                            "cte_trust_viz.launch.py",
+                        ]
+                    )
+                ]
+            ),
         )
     ]
 
