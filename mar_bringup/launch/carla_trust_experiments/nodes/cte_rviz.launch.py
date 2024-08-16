@@ -6,25 +6,25 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    viz_config_launch_arg = DeclareLaunchArgument(
-        "viz_config", default_value="multi_agent_config.rviz"
+    rviz_config_launch_arg = DeclareLaunchArgument(
+        "rviz_config", default_value="multi_agent_config.rviz"
     )
-    viz_param = PathJoinSubstitution(
+    rviz_param = PathJoinSubstitution(
         [
             get_package_share_directory("mar_bringup"),
             "config",
             "visualizer",
-            LaunchConfiguration("viz_config"),
+            LaunchConfiguration("rviz_config"),
         ]
     )
 
-    viz_node = Node(
+    rviz_node = Node(
         package="rviz2",
         namespace="",
         executable="rviz2",
         name="rviz2",
         parameters=[{"use_sim_time": True}],
-        arguments=["-d", viz_param],
+        arguments=["-d", rviz_param],
     )
 
-    return LaunchDescription([viz_config_launch_arg, viz_node])
+    return LaunchDescription([rviz_config_launch_arg, rviz_node])

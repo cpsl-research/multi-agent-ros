@@ -1,93 +1,13 @@
-from ament_index_python.packages import get_package_share_directory
+import os
+import sys
+
 from launch import LaunchDescription
-from launch.actions import (
-    DeclareLaunchArgument,
-    IncludeLaunchDescription,
-    OpaqueFunction,
-)
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 
 
-def get_agents(context):
-    """Set up the agents"""
-    n_agents = int(context.launch_configurations["n_agents"])
-
-    return [
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                [
-                    PathJoinSubstitution(
-                        [
-                            get_package_share_directory("mar_bringup"),
-                            "launch",
-                            "carla_trust_experiments",
-                            "nodes",
-                            "cte_agent_passive.launch.py",
-                        ]
-                    ),
-                ]
-            ),
-            launch_arguments={
-                "agent_name": f"agent{i}",
-                "agent_type": "mobile.yaml" if i == 0 else "static.yaml",
-            }.items(),
-        )
-        for i in range(0, n_agents)
-    ]
-
-
-def get_command_center(context):
-    """Set up the command center"""
-    n_agents = int(context.launch_configurations["n_agents"])
-
-    return [
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                [
-                    PathJoinSubstitution(
-                        [
-                            get_package_share_directory("mar_bringup"),
-                            "launch",
-                            "carla_trust_experiments",
-                            "nodes",
-                            "cte_command_center.launch.py",
-                        ]
-                    )
-                ]
-            ),
-            launch_arguments={
-                "n_agents": str(n_agents),
-            }.items(),
-        )
-    ]
-
-
-def get_viz(context):
-    """Set up the visualizer"""
-
-    viz_config = str(context.launch_configurations["viz_config"])
-
-    return [
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                [
-                    PathJoinSubstitution(
-                        [
-                            get_package_share_directory("mar_bringup"),
-                            "launch",
-                            "carla_trust_experiments",
-                            "nodes",
-                            "cte_rviz.launch.py",
-                        ]
-                    ),
-                ]
-            ),
-            launch_arguments={
-                "viz_config": viz_config,
-            }.items(),
-        )
-    ]
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path)
+from utils import get_agents, get_command_center, get_viz
 
 
 def generate_launch_description():
