@@ -36,7 +36,12 @@ def generate_launch_description():
         executable="boxtracker3d",
         namespace=agent_name,
         name="tracking",
-        parameters=[agent_config],
+        parameters=[
+            agent_config,
+            {
+                "tracking_in_global": True,
+            },
+        ],
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 
