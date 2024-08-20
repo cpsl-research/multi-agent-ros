@@ -58,6 +58,49 @@ def get_command_center(context):
     ]
 
 
+def get_metrics_evaluator(context):
+    """Set up the metrics evaluator"""
+    return [
+        IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+                [
+                    PathJoinSubstitution(
+                        [
+                            get_package_share_directory("mar_bringup"),
+                            "launch",
+                            "carla_trust_experiments",
+                            "nodes",
+                            "cte_metrics_evaluator.launch.py",
+                        ]
+                    )
+                ]
+            ),
+        )
+    ]
+
+
+def get_metrics_visualizer(context):
+    """Set up the metrics evaluator"""
+    return [
+        IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+                [
+                    PathJoinSubstitution(
+                        [
+                            get_package_share_directory("mar_bringup"),
+                            "launch",
+                            "carla_trust_experiments",
+                            "nodes",
+                            "cte_metrics_visualizer.launch.py",
+                        ]
+                    )
+                ]
+            ),
+        )
+    ]
+
+
+
 def get_trust_estimator(context):
     """Set up the trust estimator"""
     n_agents = int(context.launch_configurations["n_agents"])
