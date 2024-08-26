@@ -1,27 +1,27 @@
-[submodule "submodules/avstack-rosbridge"]
-	path = submodules/avstack-rosbridge
-	url = https://github.com/avstack-lab/avstack-rosbridge
 [submodule "submodules/lib-avstack-api"]
 	path = submodules/lib-avstack-api
 	url = https://github.com/avstack-lab/lib-avstack-api
 [submodule "submodules/lib-avstack-core"]
 	path = submodules/lib-avstack-core
 	url = https://github.com/avstack-lab/lib-avstack-core
+[submodule "submodules/lib-avstack-trust"]
+	path = submodules/lib-avstack-trust
+	url = https://github.com/cpsl-research/lib-avstack-trust
+[submodule "submodules/avstack-rosbridge"]
+	path = submodules/avstack-rosbridge
+	url = https://github.com/avstack-lab/avstack-rosbridge
+[submodule "submodules/avstack-security-rosbridge"]
+	path = submodules/avstack-security-rosbridge
+	url = https://github.com/cpsl-research/avstack-security-rosbridge
+[submodule "submodules/avstack-trust-rosbridge"]
+	path = submodules/avstack-trust-rosbridge
+	url = https://github.com/cpsl-research/avstack-trust-rosbridge
 [submodule "submodules/flirtools"]
 	path = submodules/flirtools
 	url = https://github.com/cpsl-research/flirtools.git
 [submodule "submodules/sensor-visualizers-ros"]
 	path = submodules/sensor-visualizers-ros
 	url = https://github.com/cpsl-research/sensor-visualizers-ros.git
-[submodule "submodules/perception-ros"]
-	path = submodules/perception-ros
-	url = https://github.com/cpsl-research/perception-ros
-[submodule "submodules/tracking-ros"]
-	path = submodules/tracking-ros
-	url = https://github.com/cpsl-research/tracking-ros
-[submodule "submodules/trust-ros"]
-	path = submodules/trust-ros
-	url = https://github.com/cpsl-research/trust-ros
-[submodule "submodules/multi-agent-trust-estimator"]
-	path = submodules/multi-agent-trust-estimator
-	url = https://github.com/cpsl-research/multi-agent-trust-estimator
+[submodule "submodules/lib-avstack-security"]
+	path = submodules/lib-avstack-security
+	url = https://github.com/cpsl-research/lib-avstack-security

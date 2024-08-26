@@ -17,7 +17,7 @@ def generate_launch_description():
     )
 
     trust_estimator_node = Node(
-        package="trust",
+        package="avtrust_bridge",
         executable="estimator",
         namespace="mate",
         name="trust_estimator",

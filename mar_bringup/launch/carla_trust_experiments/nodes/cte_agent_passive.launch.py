@@ -7,6 +7,8 @@ from launch_ros.actions import Node
 def generate_launch_description():
     agent_name = LaunchConfiguration("agent_name")
     agent_type = LaunchConfiguration("agent_type")
+    det_topic = LaunchConfiguration("detection_topic")
+    trk_topic = LaunchConfiguration("track_topic")
 
     agent_config = PathJoinSubstitution(
         [
@@ -19,20 +21,21 @@ def generate_launch_description():
 
     # perception
     percep_node = Node(
-        package="percep_lidar",
+        package="avstack_bridge",
         executable="mmdetection3d",
         namespace=agent_name,
         name="perception",
         parameters=[agent_config],
         remappings=[
             ("point_cloud", "lidar0"),
+            ("detections_3d", det_topic),
         ],
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 
     # tracking
     track_node = Node(
-        package="tracking",
+        package="avstack_bridge",
         executable="boxtracker3d",
         namespace=agent_name,
         name="tracking",
@@ -42,12 +45,16 @@ def generate_launch_description():
                 "tracking_in_global": True,
             },
         ],
+        remappings=[
+            ("detections_3d", det_topic),
+            ("tracks_3d", trk_topic),
+        ],
         arguments=["--ros-args", "--log-level", "INFO"],
     )
 
     # fov estimation
     fov_node = Node(
-        package="fov_estimator",
+        package="avstack_bridge",
         executable="lidar_concave_hull",
         namespace=agent_name,
         name="fov_estimator",

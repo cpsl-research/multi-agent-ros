@@ -5,7 +5,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
 
     tracking_metrics_node = Node(
-        package="tracking",
+        package="avstack_bridge",
         namespace="metrics",
         executable="metrics_evaluator",
         name="tracking_metrics",

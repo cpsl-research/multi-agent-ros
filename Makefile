@@ -1,5 +1,5 @@
 NAME := mar
-PYPACKAGES := mar_adv/mar_adv mar_agents/mar_agents mar_bringup/launch postprocessing
+PYPACKAGES := mar_bringup/launch postprocessing
 INSTALL_STAMP := .install.stamp
 POETRY := $(shell command -v poetry 2> /dev/null)
 .DEFAULT_GOAL := help

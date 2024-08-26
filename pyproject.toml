@@ -14,14 +14,20 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "~3.10"
-avstack_bridge = {path="./submodules/avstack-rosbridge/avstack_bridge/", develop=true}
-lib-avstack-core = {path="./submodules/lib-avstack-core", extras=["percep"], develop=true}
-lib-avstack-api = {path="./submodules/lib-avstack-api", develop=true}
-mate = {path="./submodules/multi-agent-trust-estimator", develop=true}
 flirtools = {path="./submodules/flirtools", develop=true}
-# opencv-python = "=4.5.5.64"
 opencv-python = ">4.7, <4.9.0.80"
 ros2_numpy = "=0.0.2"
+
+# AVSTACK PACKAGES
+lib-avstack-api = {path="./submodules/lib-avstack-api", develop=true}
+lib-avstack-core = {path="./submodules/lib-avstack-core", extras=["percep"], develop=true}
+lib-avstack-security = {path="./submodules/lib-avstack-security", develop=true}
+lib-avstack-trust = {path="./submodules/lib-avstack-trust", develop=true}
+
+# AVSTACK ROS BRIDGES
+avstack_bridge = {path="./submodules/avstack-rosbridge/avstack_bridge/", extras=[], develop=true}
+avsec_bridge = {path="./submodules/avstack-security-rosbridge/avsec_bridge/", extras=[], develop=true}
+avtrust_bridge = {path="./submodules/avstack-trust-rosbridge/avtrust_bridge/", extras=[], develop=true}
 
 [tool.poetry.group.test.dependencies]
 snakeviz="^2.1.1"

@@ -18,7 +18,7 @@ def generate_launch_description():
 
     # sensor fusion
     cc_fusion_node = Node(
-        package="tracking",
+        package="avstack_bridge",
         executable="multi_platform_boxtracker3d",
         namespace="command_center",
         name="tracker",
