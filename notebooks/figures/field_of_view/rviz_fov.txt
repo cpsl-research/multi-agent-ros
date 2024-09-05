@@ -1,0 +1,2 @@
+screenshots taken from baseline_intersection_0 at t=2.80 seconds
+view is in the agent1/ground perspective

@@ -340,7 +340,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /agent0/fov
+        Value: /agent0/lidar0/fov
       Value: true
     - Alpha: 1
       Class: rviz_default_plugins/Polygon
@@ -353,7 +353,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /agent1/fov
+        Value: /agent1/lidar0/fov
       Value: true
     - Alpha: 1
       Class: rviz_default_plugins/Polygon
@@ -366,7 +366,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /agent2/fov
+        Value: /agent2/lidar0/fov
       Value: true
     - Alpha: 1
       Class: rviz_default_plugins/Polygon
@@ -379,7 +379,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /agent3/fov
+        Value: /agent3/lidar0/fov
       Value: true
     - Alpha: 1
       Class: avstack_msgs_rviz_plugins/BoxTrackArray
