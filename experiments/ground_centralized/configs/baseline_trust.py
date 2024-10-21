@@ -2,7 +2,7 @@
 A baseline scenario with trust estimation but without any adversaries
 """
 
-_base_ = ["../../configs/baseline_algorithms.py"]
+_base_ = ["./baseline_algorithms.py"]
 
 rosbag_writer = {
     "bag_name": "baseline_trust",
@@ -19,16 +19,18 @@ rosbag_writer = {
                             "type": "TrustEstimator",
                             "measurement": {
                                 "type": "ViewBasedPsm",
-                                "assign_radius": 1.0,
+                                "assign_radius": 3.0,
+                                "n_frames_viewable_bias": 3,
+                                "n_frames_viewable_scaling": 2,
                             },
                             "updater": {
                                 "type": "TrustUpdater",
-                                "agent_negativity_bias": 8.0,
+                                "agent_negativity_bias": 6.0,
                                 "track_negativity_bias": 1.0,
-                                "agent_negativity_threshold": 0.2,
+                                "agent_negativity_threshold": 0.3,
                                 "track_negativity_threshold": 0.4,
                                 "prior_agents": {
-                                    0: {"type": "trusted", "strength": 10.0}
+                                    0: {"type": "untrusted", "strength": 1.0}
                                 },
                                 "agent_propagator": {
                                     "type": "PriorInterpolationPropagator",
